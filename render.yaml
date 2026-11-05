@@ -1,0 +1,10 @@
+# Configurazione per Render: con questo file basta "Deploy to Render" / "New Blueprint"
+services:
+  - type: web
+    name: soldatini-arena
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: echo "nessuna libreria da installare"
+    startCommand: node server.js
+    healthCheckPath: /healthz

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <!-- niente zoom: è un joystick, non una pagina da leggere -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1b1b26">
+  <title>Soldatini Arena — Controller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/controller.css">
+</head>
+<body class="ctrl">
+
+  <!-- 1. Ingresso: nome (e codice stanza se non arriva dal QR) -->
+  <section id="scrJoin" class="screen">
+    <h1 class="title">SOLDATINI<span>ARENA</span></h1>
+    <form id="joinForm" autocomplete="off">
+      <label>CODICE STANZA
+        <input id="inRoom" maxlength="4" autocapitalize="characters" spellcheck="false" placeholder="ABCD">
+      </label>
+      <label>IL TUO NOME
+        <input id="inName" maxlength="9" autocapitalize="characters" spellcheck="false" placeholder="RAMBO">
+      </label>
+      <button class="btn big" type="submit">ENTRA!</button>
+    </form>
+    <p class="err" id="joinErr"></p>
+  </section>
+
+  <!-- 2. Lobby -->
+  <section id="scrLobby" class="screen hidden">
+    <div class="me-card" id="meCard">
+      <canvas id="meSprite" width="12" height="17"></canvas>
+      <div>
+        <div class="me-num" id="meNum">GIOCATORE 1</div>
+        <div class="me-name" id="meName">---</div>
+      </div>
+    </div>
+    <ul class="mini-roster" id="roster"></ul>
+    <button class="btn big hidden" id="btnStart">INIZIA!</button>
+    <p class="note" id="lobbyNote">ASPETTA CHE IL CAPO AVVII LA PARTITA...</p>
+    <p class="note small">GUARDA LO SCHERMO GRANDE · TIENI IL TELEFONO IN ORIZZONTALE</p>
+  </section>
+
+  <!-- 3. Controller di gioco -->
+  <section id="scrPad" class="screen hidden">
+    <header class="pad-top">
+      <div class="chip" id="padChip">1</div>
+      <div class="pad-name" id="padName">---</div>
+      <div class="pad-ammo" id="padAmmo"></div>
+      <div class="pad-kills"><canvas id="skullIcon" width="7" height="6"></canvas><span id="padKills">0</span></div>
+      <div class="pad-time" id="padTime">3:00</div>
+    </header>
+    <div class="pad-body">
+      <div class="stick-zone" id="stickZone">
+        <div class="stick-base" id="stickBase"><div class="stick-knob" id="stickKnob"></div></div>
+        <p class="zone-hint">MUOVITI</p>
+      </div>
+      <div class="buttons">
+        <button class="pbtn pow" id="btnPow"><canvas id="powIcon" width="9" height="9"></canvas><span id="powLabel">POWERUP</span></button>
+        <button class="pbtn fire" id="btnFire"><span>SPARA!</span></button>
+      </div>
+    </div>
+    <div class="ko hidden" id="koLayer"><div class="ko-text">K.O.!</div><div class="ko-sub" id="koSub">RIENTRI TRA 3</div></div>
+    <div class="flash-layer" id="flashLayer"></div>
+  </section>
+
+  <!-- 4. Fine partita -->
+  <section id="scrOver" class="screen hidden">
+    <h1 class="title small-title" id="overTitle">WINNER!</h1>
+    <p class="over-win" id="overWin"></p>
+    <ol class="over-rank" id="overRank"></ol>
+    <div class="row">
+      <button class="btn big hidden" id="btnAgain">NUOVA PARTITA</button>
+      <button class="btn hidden" id="btnLobby">LOBBY</button>
+    </div>
+    <p class="note" id="overNote">IL CAPO SCEGLIE SE RIGIOCARE...</p>
+  </section>
+
+  <!-- 5. Messaggi (attesa, stanza piena, errore) -->
+  <section id="scrMsg" class="screen hidden">
+    <h1 class="title small-title">ATTENZIONE!</h1>
+    <p class="note big-note" id="msgText">...</p>
+    <button class="btn" id="btnRetry">RIPROVA</button>
+  </section>
+
+  <!-- Avviso orientamento -->
+  <div id="rotate" class="rotate hidden">
+    <div class="phone-icon"></div>
+    <p>RUOTA IL TELEFONO<br>IN ORIZZONTALE</p>
+  </div>
+
+  <div id="connBadge" class="conn-badge hidden">RICONNESSIONE...</div>
+
+  <script src="js/common/net.js"></script>
+  <script src="js/common/icons.js"></script>
+  <script src="js/controller/controller.js"></script>
+</body>
+</html>

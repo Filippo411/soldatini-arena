@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soldatini Arena — Schermo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/host.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'><rect width='8' height='8' fill='%231b1b26'/><rect x='1' y='1' width='6' height='3' fill='%2366762f'/><rect x='1' y='4' width='6' height='1' fill='%23ff3b3b'/><rect x='2' y='5' width='4' height='2' fill='%23ffc690'/></svg>">
+</head>
+<body class="host">
+  <!-- Il gioco: canvas a 384x216 ingrandito a schermo intero -->
+  <div id="stage"><canvas id="game"></canvas></div>
+
+  <!-- LOBBY: QR code + giocatori collegati -->
+  <div id="lobby" class="overlay">
+    <h1 class="title">SOLDATINI<span>ARENA</span></h1>
+    <div class="lobby-grid">
+      <div class="panel join">
+        <div class="qr-wrap"><canvas id="qr"></canvas></div>
+        <p class="hint">INQUADRA IL QR<br>CON IL TELEFONO</p>
+        <p class="small">oppure vai su</p>
+        <p class="url" id="joinUrl">...</p>
+        <p class="small">e inserisci il codice</p>
+        <p class="code" id="roomCode">----</p>
+      </div>
+      <div class="panel roster">
+        <h2>SQUADRA</h2>
+        <ul id="slots"></ul>
+        <p class="small" id="lobbyHint">Da 1 a 4 giocatori. Da solo? Arrivano 3 bot!</p>
+        <button id="startBtn" class="btn big">INIZIA</button>
+        <p class="small">o premi INIZIA dal primo telefono collegato · INVIO</p>
+      </div>
+    </div>
+    <p class="rules">10 ELIMINAZIONI O 3 MINUTI · 10 COLPI · RACCOGLI MUNIZIONI E POWERUP</p>
+    <div id="netStatus" class="net-status">CONNESSIONE AL SERVER...</div>
+  </div>
+
+  <!-- FINE PARTITA: classifica -->
+  <div id="over" class="overlay hidden">
+    <h1 class="winner" id="winnerTitle">WINNER!</h1>
+    <p class="winner-name" id="winnerName"></p>
+    <table class="ranking"><tbody id="rankBody"></tbody></table>
+    <div class="over-buttons">
+      <button id="againBtn" class="btn big">NUOVA PARTITA</button>
+      <button id="lobbyBtn" class="btn">TORNA ALLA LOBBY</button>
+    </div>
+    <p class="small">INVIO = nuova partita · anche dal primo telefono</p>
+  </div>
+
+  <!-- Barra strumenti (audio / schermo intero) -->
+  <div id="toolbar">
+    <button id="audioBtn" class="btn pulse">CLICCA QUI PER ATTIVARE L'AUDIO</button>
+    <button id="muteBtn" class="btn tiny hidden" title="Audio on/off (M)">AUDIO ON</button>
+    <button id="fsBtn" class="btn tiny" title="Schermo intero (F)">SCHERMO INTERO</button>
+  </div>
+
+  <script src="js/common/net.js"></script>
+  <script src="js/common/qr.js"></script>
+  <script src="js/common/icons.js"></script>
+  <script src="js/host/config.js"></script>
+  <script src="js/host/font.js"></script>
+  <script src="js/host/audio.js"></script>
+  <script src="js/host/map.js"></script>
+  <script src="js/host/sprites.js"></script>
+  <script src="js/host/bots.js"></script>
+  <script src="js/host/game.js"></script>
+  <script src="js/host/render.js"></script>
+  <script src="js/host/host.js"></script>
+</body>
+</html>
