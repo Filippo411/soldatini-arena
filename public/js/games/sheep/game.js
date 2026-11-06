@@ -38,6 +38,7 @@
       this.wolf = null;
       this.wolfTimer = S.WOLF_FIRST;
       this.goldTimer = 6;
+      this.waveT = 0;
       this.respawnQueue = [];
       this.rings = [];         // onde dell'abbaio
       this.texts = [];
@@ -81,6 +82,7 @@
         this.time = Math.max(0, this.time - dt);
         const after = Math.ceil(this.time);
         if (before !== after) {
+          if (after === 60) this.showBanner('ULTIMO MINUTO!', '#ff9c3b', 1.4);
           if (after === 10) this.showBanner('ULTIMI 10 SECONDI!', '#ff9c3b', 1.4);
           if (after <= 5 && after > 0) this.emit('sfx', 'tick');
         }
@@ -326,6 +328,25 @@
     // Pecora d'oro e lupo
     // ------------------------------------------------------------------
     updateGold(dt) {
+      // nuovo gregge quando quasi tutte le pecore sono già nei recinti
+      const free = this.sheep.filter((s) => s.pen < 0).length + this.respawnQueue.length;
+      if (this.waveT > 0) {
+        this.waveT -= dt;
+        if (this.waveT <= 0) {
+          const open = this.map.open().filter((t) => t.tx > 14 && t.tx < S.COLS - 15);
+          const n = Math.min(S.WAVE_SIZE, S.MAX_SHEEP - this.sheep.length);
+          for (let i = 0; i < n; i++) {
+            this.addSheep(open, false);
+            const sh = this.sheep[this.sheep.length - 1];
+            this.puff(sh.x, sh.y, '#ffffff');
+          }
+          this.emit('sfx', 'baa');
+        }
+      } else if (free <= S.WAVE_MIN_FREE && this.sheep.length < S.MAX_SHEEP && this.time > 8) {
+        this.waveT = 2;
+        this.showBanner('NUOVO GREGGE!', '#ffffff', 1.6);
+        this.emit('sfx', 'golden');
+      }
       this.goldTimer -= dt;
       for (const r of this.respawnQueue) r.t -= dt;
       const ready = this.respawnQueue.filter((r) => r.t <= 0);

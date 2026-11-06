@@ -135,6 +135,7 @@
         this.time = Math.max(0, this.time - dt);
         const after = Math.ceil(this.time);
         if (before !== after) {
+          if (after === 60) { this.showBanner('ULTIMO MINUTO!', '#ff9c3b', 1.4); this.emit('announce', 'One minute left!'); }
           if (after === 30) { this.showBanner('30 SECONDI!', '#ff9c3b', 1.4); this.emit('announce', 'Thirty seconds!'); }
           if (after <= 5 && after > 0) this.emit('sfx', 'tick');
         }
@@ -427,7 +428,6 @@
           this.showBanner('INARRESTABILE!', C.PLAYERS[attacker.slot].color, 1.3);
           this.emit('announce', 'Unstoppable!');
         }
-        if (attacker.kills === C.KILLS_TO_WIN - 1) this.floatText(attacker.x, attacker.y - 30, 'ULTIMO!', '#ffffff');
         this.floatText(attacker.x, attacker.y - 22, '+1', C.PLAYERS[attacker.slot].light);
         this.feed.unshift({ a: attacker.slot, an: attacker.name, v: victim.slot, vn: victim.name, cause, t: 4 });
         this.emit('buzz', { s: attacker, pattern: [30] });
@@ -441,8 +441,7 @@
       if (this.feed.length > 4) this.feed.length = 4;
       this.emit('hud', victim);
 
-      if (attacker && attacker !== victim && attacker.kills >= C.KILLS_TO_WIN) this.endMatch(attacker);
-      else if (this.suddenDeath) this.checkTimeUp();
+      if (this.suddenDeath) this.checkTimeUp();
       return true;
     }
 

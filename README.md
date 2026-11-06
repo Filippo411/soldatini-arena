@@ -31,6 +31,8 @@ Gare di kart in finto 3D, nello stile dei kart del Super Nintendo. Ci sono sempr
 | **La Regina del Nilo** | copricapo dorato e sorpassi regali |
 | **La Televenditrice** | capelli cotonati, occhialoni e telefono in mano |
 
+Le piste hanno la **forma reale** dei circuiti, ricavata dai tracciati GPS del progetto open source [f1-circuits](https://github.com/bacinger/f1-circuits) (licenza MIT, © Tomislav Bacinger). Sono scalate perché **un giro duri circa 1 minuto e mezzo**: 3 giri fanno circa 4 minuti e mezzo di gara.
+
 | Pista | Cosa c'è |
 |---|---|
 | **Monza** | rettilinei lunghi, varianti, Lesmo, Ascari, la Parabolica e la vecchia sopraelevata nel parco |
@@ -62,7 +64,8 @@ Sulla TV c'è una scena in pixel art (fattoria, spiaggia o città di notte, ogni
 
 ## Holy Sheep
 
-Ognuno è un cane pastore e ha un recinto in un angolo del pascolo, del suo colore. Dopo **2 minuti** vince chi ha più pecore nel recinto.
+Ognuno è un cane pastore e ha un recinto in un angolo del pascolo, del suo colore. Dopo **4 minuti** vince chi ha più pecore nel recinto.
+Quando quasi tutte le pecore sono già nei recinti, arriva un **nuovo gregge** in mezzo al campo.
 
 | Sul telefono | Cosa fa |
 |---|---|
@@ -80,7 +83,7 @@ Ognuno è un cane pastore e ha un recinto in un angolo del pascolo, del suo colo
 
 ## Soldatini Arena
 
-Si gioca tutti contro tutti in uno sparatutto 2D visto dall'alto, con grafica pixel art in stile arcade militare anni '90. Vince chi arriva per primo a **10 eliminazioni**, oppure chi ne ha di più dopo **3 minuti**.
+Si gioca tutti contro tutti in uno sparatutto 2D visto dall'alto, con grafica pixel art in stile arcade militare anni '90. Una partita dura sempre **4 minuti** e vince chi fa più eliminazioni. In caso di parità si va al *sudden death*.
 
 ---
 

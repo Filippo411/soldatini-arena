@@ -9,7 +9,7 @@
   'use strict';
 
   const KC = {
-    MAX_SPEED: 150,
+    MAX_SPEED: 135,
     ACCEL: 70,
     BRAKE: 160,
     TURN: 2.3,            // radianti al secondo a piena sterzata

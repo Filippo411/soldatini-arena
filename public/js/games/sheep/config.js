@@ -8,7 +8,10 @@
     W: 384, H: 216, HUD_TOP: 12, HUD_BOTTOM: 12,
     TILE: 8, COLS: 48, ROWS: 24,
 
-    MATCH_TIME: 120,        // secondi
+    MATCH_TIME: 240,        // secondi (4 minuti)
+    WAVE_MIN_FREE: 3,       // se in campo restano così poche pecore libere...
+    WAVE_SIZE: 12,          // ...arriva un nuovo gregge di N pecore
+    MAX_SHEEP: 70,          // limite totale (per non rallentare)
     SHEEP_COUNT: 24,        // pecore bianche in campo
     GOLDEN_EVERY: 22,       // ogni quanti secondi compare una pecora d'oro (se non ce n'è una)
     GOLDEN_VALUE: 3,        // quanto vale una pecora d'oro

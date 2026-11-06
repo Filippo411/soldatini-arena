@@ -56,8 +56,9 @@
     ctx.globalAlpha = 0.85; ctx.drawImage(mm, mx, my); ctx.globalAlpha = 1;
     for (const k of race.karts) {
       const pc = ROOM.PLAYERS[k.slot];
-      ctx.fillStyle = K; ctx.fillRect(Math.round(mx + k.x / 16) - 2, Math.round(my + k.y / 16) - 2, 5, 5);
-      ctx.fillStyle = pc.color; ctx.fillRect(Math.round(mx + k.x / 16) - 1, Math.round(my + k.y / 16) - 1, 3, 3);
+      const ms = race.world.size / 64;
+      ctx.fillStyle = K; ctx.fillRect(Math.round(mx + k.x / ms) - 2, Math.round(my + k.y / ms) - 2, 5, 5);
+      ctx.fillStyle = pc.color; ctx.fillRect(Math.round(mx + k.x / ms) - 1, Math.round(my + k.y / ms) - 1, 3, 3);
     }
     drawLights(race);
     if (race.banner) {
@@ -71,7 +72,7 @@
     const world = race.world, tr = world.track;
     const { w, h } = vp;
     const buf = buffer(w, h);
-    const d32 = buf.d32, tex = world.tex;
+    const d32 = buf.d32, tex = world.tex, TS = world.texSize;
     // telecamera dietro al kart
     const a = me.heading;
     const fx = Math.cos(a), fy = Math.sin(a);
@@ -96,10 +97,10 @@
       let wx = camX + fx * dist - rx * (w / 2) * k;
       let wy = camY + fy * dist - ry * (w / 2) * k;
       const sx = rx * k, sy = ry * k;
-      const fogged = dist > 520;
+      const fogged = dist > 700;
       for (let x = 0; x < w; x++) {
-        const tx = wx | 0, ty = wy | 0;
-        let c = (tx >= 0 && ty >= 0 && tx < 1024 && ty < 1024) ? tex[(ty << 10) + tx] : outside;
+        const tx = (wx * 0.5) | 0, ty = (wy * 0.5) | 0;    // 1 pixel di texture = 2 unità di mondo
+        let c = (wx >= 0 && wy >= 0 && tx < TS && ty < TS) ? tex[ty * TS + tx] : outside;
         if (fogged) c = ((((c & 0xfefefe) >>> 1) + ((fog & 0xfefefe) >>> 1)) | 0xff000000) >>> 0;
         d32[row + x] = c;
         wx += sx; wy += sy;
@@ -127,7 +128,7 @@
     };
     for (const d of world.deco) {
       const p = project(d.x, d.y);
-      if (!p || p.f > 600) continue;
+      if (!p || p.f > 800) continue;
       list.push({ p, img: KartArt.decoImage(d), ws: KartArt.DECO_SCALE[d.kind] || 2 });
     }
     for (const k of race.karts) {

@@ -110,7 +110,7 @@
   GAMES.register({
     id: 'shooter',
     title: 'SOLDATINI ARENA',
-    desc: 'Sparatutto tutti contro tutti. 10 eliminazioni o 3 minuti.',
+    desc: 'Sparatutto tutti contro tutti: 4 minuti, vince chi fa più eliminazioni.',
     players: '1-4 (bot se sei da solo)',
     layout: 'shooter',
     available: true,

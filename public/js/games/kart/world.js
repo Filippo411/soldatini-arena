@@ -9,7 +9,7 @@
 (function () {
   'use strict';
 
-  const SIZE = 1024;
+  const TEXEL = 2;      // ogni pixel della texture copre 2x2 unità di mondo
   const SURF = { GRASS: 0, ROAD: 1, KERB: 2, SAND: 3, WALL: 4 };
 
   function catmull(p0, p1, p2, p3, t) {
@@ -72,27 +72,34 @@
   function build(tr) {
     const S = sampleTrack(tr);
     const W = tr.width;
+    const WS = tr.size;            // lato del mondo (unità di gioco)
+    const TS = WS / TEXEL;         // lato della texture (1 pixel = 2 unità)
 
     // ---------------- texture del suolo ----------------
-    const tc = document.createElement('canvas'); tc.width = tc.height = SIZE;
+    const tc = document.createElement('canvas'); tc.width = tc.height = TS;
     const g = tc.getContext('2d');
+    g.scale(1 / TEXEL, 1 / TEXEL);   // da qui in poi si disegna in coordinate del mondo
     // erba (o marciapiede a Monaco) a scacchi grandi: dà il senso della velocità
-    for (let y = 0; y < SIZE; y += 32) for (let x = 0; x < SIZE; x += 32) {
-      g.fillStyle = ((x + y) / 32) % 2 ? tr.ground : tr.ground2;
-      g.fillRect(x, y, 32, 32);
+    for (let y = 0; y < WS; y += 64) for (let x = 0; x < WS; x += 64) {
+      g.fillStyle = ((x + y) / 64) % 2 ? tr.ground : tr.ground2;
+      g.fillRect(x, y, 64, 64);
     }
-    for (let i = 0; i < 4000; i++) {
+    for (let i = 0; i < 12000; i++) {
       g.fillStyle = hash(i, 7) < 0.5 ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.10)';
-      g.fillRect(Math.floor(hash(i, 1) * SIZE), Math.floor(hash(i, 2) * SIZE), 2, 2);
+      g.fillRect(Math.floor(hash(i, 1) * WS), Math.floor(hash(i, 2) * WS), 4, 4);
     }
+    let harbor = null;
     if (tr.id === 'monaco') {
-      // il porto: acqua blu dentro l'anello, a destra
-      g.fillStyle = '#2f8bff';
-      g.fillRect(720, 160, 140, 560);
+      // il porto: l'acqua racchiusa dall'anello inferiore della pista (dalla piscina al traguardo)
+      harbor = new Path2D();
+      const from = Math.floor(S.length * 0.53);
+      for (let i = from; i < S.length; i++) (i === from ? harbor.moveTo(S[i].x, S[i].y) : harbor.lineTo(S[i].x, S[i].y));
+      harbor.closePath();
+      g.fillStyle = '#2f8bff'; g.fill(harbor);
+      g.save(); g.clip(harbor);
       g.fillStyle = '#5fb0ff';
-      for (let y = 170; y < 710; y += 14) for (let x = 728; x < 852; x += 22) g.fillRect(x + (y % 28 ? 8 : 0), y, 8, 2);
-      // e il mare in alto, oltre il tunnel
-      g.fillStyle = '#2f8bff'; g.fillRect(0, 0, SIZE, 70);
+      for (let y = 0; y < WS; y += 28) for (let x = 0; x < WS; x += 44) g.fillRect(x + (y % 56 ? 16 : 0), y, 16, 4);
+      g.restore();
     }
     if (!tr.walls) strokePath(g, S, W + 44, tr.runoff);                        // vie di fuga di sabbia
     else strokePath(g, S, W + 14, '#c9ccd4');                                   // guardrail
@@ -101,26 +108,24 @@
     strokePath(g, S, W + 8, '#e8202a', [8, 8]);                                 // ...e rossi
     strokePath(g, S, W, '#55565f');                                             // asfalto
     // gallerie più scure
-    g.save();
     for (let i = 0; i < S.length; i++) {
       if (!S[i].tunnel) continue;
       g.fillStyle = '#3a3b42';
       g.beginPath(); g.arc(S[i].x, S[i].y, W / 2, 0, Math.PI * 2); g.fill();
     }
-    g.restore();
     // puntini sull'asfalto (granulosità)
-    for (let i = 0; i < 9000; i++) {
+    for (let i = 0; i < S.length * 12; i++) {
       const s = S[Math.floor(hash(i, 3) * S.length)];
       const off = (hash(i, 4) - 0.5) * W * 0.9;
       const nx = -Math.sin(s.dir), ny = Math.cos(s.dir);
       g.fillStyle = hash(i, 5) < 0.5 ? '#4a4b54' : '#62636d';
-      g.fillRect(Math.round(s.x + nx * off), Math.round(s.y + ny * off), 2, 2);
+      g.fillRect(Math.round(s.x + nx * off), Math.round(s.y + ny * off), 4, 4);
     }
     // linea di mezzeria tratteggiata
     for (let i = 0; i < S.length; i += 6) {
       if (S[i].tunnel) continue;
       g.fillStyle = 'rgba(255,255,255,0.35)';
-      g.fillRect(Math.round(S[i].x) - 1, Math.round(S[i].y) - 1, 2, 2);
+      g.fillRect(Math.round(S[i].x) - 2, Math.round(S[i].y) - 2, 4, 4);
     }
     // traguardo a scacchi
     const s0 = S[0];
@@ -135,35 +140,37 @@
       const side = k % 2 ? -1 : 1;
       const nx = -Math.sin(s.dir), ny = Math.cos(s.dir);
       g.fillStyle = '#ffffff';
-      g.save(); g.translate(s.x + nx * side * W * 0.22, s.y + ny * side * W * 0.22); g.rotate(s.dir); g.fillRect(-1, -6, 2, 12); g.restore();
+      g.save(); g.translate(s.x + nx * side * W * 0.22, s.y + ny * side * W * 0.22); g.rotate(s.dir); g.fillRect(-2, -8, 4, 16); g.restore();
     }
-    const tex = new Uint32Array(g.getImageData(0, 0, SIZE, SIZE).data.buffer);
+    const tex = new Uint32Array(g.getImageData(0, 0, TS, TS).data.buffer);
 
     // ---------------- mappa delle superfici ----------------
-    const sc = document.createElement('canvas'); sc.width = sc.height = SIZE;
+    const sc = document.createElement('canvas'); sc.width = sc.height = TS;
     const h = sc.getContext('2d');
+    h.scale(1 / TEXEL, 1 / TEXEL);
     const col = (t) => `rgb(${t * 50},0,0)`;
-    h.fillStyle = col(tr.walls ? SURF.WALL : SURF.GRASS); h.fillRect(0, 0, SIZE, SIZE);
+    h.fillStyle = col(tr.walls ? SURF.WALL : SURF.GRASS); h.fillRect(0, 0, WS, WS);
     if (!tr.walls) strokePath(h, S, W + 44, col(SURF.SAND));
     strokePath(h, S, W + 8, col(SURF.KERB));
     strokePath(h, S, W, col(SURF.ROAD));
-    const raw = h.getImageData(0, 0, SIZE, SIZE).data;
-    const surf = new Uint8Array(SIZE * SIZE);
+    const raw = h.getImageData(0, 0, TS, TS).data;
+    const surf = new Uint8Array(TS * TS);
     for (let i = 0; i < surf.length; i++) surf[i] = Math.round(raw[i * 4] / 50);
 
     // ---------------- minimappa ----------------
     const mm = document.createElement('canvas'); mm.width = mm.height = 64;
     const m = mm.getContext('2d');
-    m.scale(64 / SIZE, 64 / SIZE);
-    strokePath(m, S, 70, '#1b1b26');
-    strokePath(m, S, 40, '#ffffff');
+    m.scale(64 / WS, 64 / WS);
+    strokePath(m, S, WS / 64 * 4, '#1b1b26');
+    strokePath(m, S, WS / 64 * 2, '#ffffff');
 
+    const deco = makeDeco(tr, S, harbor, g);
     return {
-      track: tr, samples: S, tex, surf, minimap: mm, deco: makeDeco(tr, S), panorama: makePanorama(tr),
+      track: tr, samples: S, tex, texSize: TS, size: WS, surf, minimap: mm, deco, panorama: makePanorama(tr),
       surfAt(x, y) {
-        const ix = x | 0, iy = y | 0;
-        if (ix < 0 || iy < 0 || ix >= SIZE || iy >= SIZE) return SURF.WALL;
-        return surf[iy * SIZE + ix];
+        const ix = (x / TEXEL) | 0, iy = (y / TEXEL) | 0;
+        if (x < 0 || y < 0 || ix >= TS || iy >= TS) return SURF.WALL;
+        return surf[iy * TS + ix];
       },
       length: S.length * 4,
     };
@@ -172,9 +179,10 @@
   // ------------------------------------------------------------------
   // Decorazioni a bordo pista
   // ------------------------------------------------------------------
-  function makeDeco(tr, S) {
+  function makeDeco(tr, S, harbor, g) {
     const out = [];
     const W = tr.width;
+    const SIZE = tr.size;
     const near = (x, y, r) => S.some((s, i) => (i % 3 === 0) && Math.hypot(s.x - x, s.y - y) < r);
     const add = (kind, x, y, extra) => { if (x > 8 && y > 8 && x < SIZE - 8 && y < SIZE - 8) out.push(Object.assign({ kind, x, y }, extra || {})); };
     // cartelli con i nomi delle curve, all'esterno
@@ -198,7 +206,7 @@
         else if (tr.id === 'spa') add(hash(i, 11) < 0.75 ? 'pine' : 'tree', x, y);
         else if (s.tunnel) continue;
         else {
-          if (x > 715 && x < 865 && y > 155 && y < 725) continue; // niente palazzi in mezzo al porto
+          if (harbor && g.isPointInPath(harbor, x / TEXEL, y / TEXEL)) continue; // niente palazzi in mezzo al porto
           add(hash(i, 11) < 0.6 ? 'building' : 'palm', x, y, { c: Math.floor(hash(i, 13) * 5) });
         }
       }
@@ -210,12 +218,19 @@
       add('stand', s.x - nx * (W / 2 + (tr.walls ? 20 : 34)), s.y - ny * (W / 2 + (tr.walls ? 20 : 34)));
     }
     if (tr.id === 'monza') {
-      // la vecchia sopraelevata: un muro curvo di cemento nel parco
-      for (let a = 0; a < Math.PI; a += 0.12) add('banking', 520 + Math.cos(a + Math.PI) * 220, 640 + Math.sin(a + Math.PI) * 120);
+      // la vecchia sopraelevata: un muro curvo di cemento nel parco, dentro il circuito
+      const cx = S.reduce((t, s) => t + s.x, 0) / S.length, cy = S.reduce((t, s) => t + s.y, 0) / S.length;
+      for (let a = 0; a < Math.PI * 1.2; a += 0.06) {
+        const x = cx + Math.cos(a + Math.PI) * 420, y = cy + Math.sin(a + Math.PI) * 260;
+        if (!near(x, y, W / 2 + 40)) add('banking', x, y);
+      }
     }
     if (tr.id === 'monaco') {
-      // yacht nel porto
-      for (let y = 200; y < 700; y += 55) for (let x = 745; x < 850; x += 50) if (hash(x, y) < 0.7) add('yacht', x + hash(y, x) * 10, y, { c: Math.floor(hash(x, y + 1) * 5) });
+      // yacht nel porto (dentro l'acqua, lontano dalla pista)
+      for (let y = 0; y < SIZE; y += 70) for (let x = 0; x < SIZE; x += 70) {
+        if (hash(x, y) > 0.55 || !g.isPointInPath(harbor, x / TEXEL, y / TEXEL) || near(x, y, W / 2 + 40)) continue;
+        add('yacht', x + hash(y, x) * 20, y, { c: Math.floor(hash(x, y + 1) * 5) });
+      }
     }
     return out;
   }
@@ -260,12 +275,13 @@
     const S = sampleTrack(tr);
     const c = document.createElement('canvas'); c.width = c.height = size;
     const g = c.getContext('2d');
-    g.scale(size / SIZE, size / SIZE);
-    strokePath(g, S, 80, '#1b1b26');
-    strokePath(g, S, 44, '#ffffff');
-    g.fillStyle = '#ff3b3b'; g.fillRect(S[0].x - 30, S[0].y - 30, 60, 60);
+    const WS = tr.size;
+    g.scale(size / WS, size / WS);
+    strokePath(g, S, WS / size * 4, '#1b1b26');
+    strokePath(g, S, WS / size * 2, '#ffffff');
+    g.fillStyle = '#ff3b3b'; g.fillRect(S[0].x - WS / size * 2, S[0].y - WS / size * 2, WS / size * 4, WS / size * 4);
     return c;
   }
 
-  window.KartWorld = { build, preview, SURF, SIZE };
+  window.KartWorld = { build, preview, SURF };
 })();

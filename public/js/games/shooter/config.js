@@ -17,8 +17,7 @@
     ROWS: 24,           // 24 * 8 = 192 px (+ 12 + 12 di HUD = 216)
 
     // --- Partita ---
-    KILLS_TO_WIN: 10,
-    MATCH_TIME: 180,    // secondi
+    MATCH_TIME: 240,    // secondi: si gioca sempre 4 minuti, vince chi ha più eliminazioni
     RESPAWN_TIME: 3,
     SPAWN_PROTECT: 1.5, // secondi di invulnerabilità dopo il respawn
 
