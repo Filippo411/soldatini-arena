@@ -47,6 +47,7 @@ Le piste hanno la **forma reale** dei circuiti, ricavata dai tracciati GPS del p
 - Se il volante non ti piace, il pulsante **TASTI** passa a due frecce per sterzare.
 - Fuori pista si rallenta e il telefono vibra. A Monaco i muretti ti fanno rimbalzare.
 - La gara finisce quando tutti sono arrivati, oppure 20 secondi dopo il primo arrivato.
+- **Rimonta:** chi è dietro al primo va un pelino più veloce (fino a +7%, in base al distacco), così la gara resta aperta. Si regola con `CATCHUP_*` in `public/js/games/kart/game.js`.
 
 ---
 
@@ -58,13 +59,13 @@ Sulla TV c'è una scena in pixel art (fattoria, spiaggia o città di notte, ogni
 - **Tocco sbagliato:** il telefono si blocca per 2 secondi, così nessuno tocca a caso.
 - Vince chi le trova **tutte e 10** per primo, oppure chi ne ha di più dopo 3 minuti.
 - Ogni tanto la TV mostra un **aiutino**: un cerchio lampeggiante attorno a una zona dove c'è una differenza che quasi nessuno ha trovato.
-- A fine partita la TV e i telefoni mostrano tutte le differenze.
+- A fine partita, per 12 secondi, la TV e i telefoni mostrano le **soluzioni** prima della classifica. Sulla TV le differenze trovate da qualcuno sono in verde, quelle che non ha trovato nessuno in rosso lampeggiante. Sul telefono in rosso ci sono quelle che mancavano a te.
 
 ---
 
 ## Holy Sheep
 
-Ognuno è un cane pastore e ha un recinto in un angolo del pascolo, del suo colore. Dopo **4 minuti** vince chi ha più pecore nel recinto.
+Ognuno è un cane pastore e ha un recinto in un angolo del pascolo, del suo colore. Dopo **3 minuti** vince chi ha più pecore.
 Quando quasi tutte le pecore sono già nei recinti, arriva un **nuovo gregge** in mezzo al campo.
 
 | Sul telefono | Cosa fa |
@@ -74,9 +75,9 @@ Quando quasi tutte le pecore sono già nei recinti, arriva un **nuovo gregge** i
 | **SCATTO** | Corsa veloce per mezzo secondo (si ricarica in 3 secondi) |
 
 - **Correre addosso** alle pecore le spaventa e le fa scappare, con lo scatto ancora di più. Serve a spingerle o a rubarle agli altri.
-- Una pecora che entra in un recinto si sistema lì. Si può però **rubare** dal recinto degli altri, abbaiando dal cancello.
+- Una pecora che entra in un recinto si sistema lì. Dopo **3 secondi** (negli ultimi lampeggia) **sparisce dal recinto e resta nel tuo punteggio per sempre**: da quel momento nessuno può più rubartela. Nei 3 secondi si può ancora **rubarla** dal recinto degli altri, abbaiando dal cancello.
 - La **pecora d'oro** vale 3 punti.
-- **Il lupo** ogni tanto entra nel pascolo e si mangia una pecora libera. **Abbaiagli contro** per mandarlo via.
+- **Il lupo** entra nel pascolo da uno dei quattro lati, si apposta a zig-zag e poi **scatta** sulla preda, di solito una pecora che un cane sta portando a casa o quella d'oro. Si mangia fino a 2 pecore libere. **Abbaiagli contro**: la prima volta indietreggia ma torna, la seconda se ne va.
 - Da soli si gioca contro 3 cani del computer.
 
 ---

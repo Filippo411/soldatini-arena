@@ -3916,7 +3916,8 @@ var __read = (this && this.__read) || function (o, n) {
     var S = {
         W: 384, H: 216, HUD_TOP: 12, HUD_BOTTOM: 12,
         TILE: 8, COLS: 48, ROWS: 24,
-        MATCH_TIME: 240,
+        MATCH_TIME: 180,
+        PEN_STAY: 3,
         WAVE_MIN_FREE: 3,
         WAVE_SIZE: 12,
         MAX_SHEEP: 70,
@@ -3936,10 +3937,16 @@ var __read = (this && this.__read) || function (o, n) {
         SHEEP_SPEED: 30,
         SHEEP_FOLLOW_SPEED: 52,
         SHEEP_FLEE_SPEED: 60,
-        WOLF_FIRST: 32,
-        WOLF_EVERY: 28,
-        WOLF_SPEED: 50,
-        WOLF_LIFE: 13,
+        WOLF_FIRST: 22,
+        WOLF_EVERY: 22,
+        WOLF_SPEED: 52,
+        WOLF_LUNGE_SPEED: 125,
+        WOLF_LUNGE_R: 48,
+        WOLF_LUNGE_TIME: 0.5,
+        WOLF_LUNGE_CD: 1.3,
+        WOLF_MAX_EAT: 2,
+        WOLF_SCARES: 2,
+        WOLF_LIFE: 15,
         WOLF_FEAR_R: 58,
         SHEEP_RESPAWN: 7,
         BOT_NAMES: ['FUFFI', 'BALTO', 'LASSIE', 'REX', 'BRICIOLA', 'ZEUS'],
@@ -4757,7 +4764,7 @@ var __values = (this && this.__values) || function(o) {
                     slot: d.slot, name: d.name, isBot: !!d.isBot, connected: true,
                     x: p.spawnX, y: p.spawnY, vx: 0, vy: 0, left: p.dir < 0, moving: false, walkT: 0,
                     input: { x: 0, y: 0, bark: false, dash: false },
-                    barkCd: 0, dashCd: 0, dashT: 0, barkT: 0, score: 0, bot: null,
+                    barkCd: 0, dashCd: 0, dashT: 0, barkT: 0, score: 0, banked: 0, bot: null,
                 };
             });
             this.sheep = [];
@@ -4787,7 +4794,7 @@ var __values = (this && this.__values) || function(o) {
                 golden: golden,
                 heading: rand(0, Math.PI * 2), wanderT: rand(0, 2), graze: rand(0, 2),
                 followDog: null, followT: 0, fleeT: 0, left: Math.random() < 0.5, walkT: 0,
-                pen: -1, alertT: 0, bleatT: rand(3, 15),
+                pen: -1, penT: 0, alertT: 0, bleatT: rand(3, 15),
             });
         };
         SheepGame.prototype.update = function (dt) {
@@ -4855,7 +4862,7 @@ var __values = (this && this.__values) || function(o) {
                 finally { if (e_2) throw e_2.error; }
             }
             this.separate();
-            this.updateScores();
+            this.updateScores(dt);
             try {
                 for (var _k = __values(this.rings), _l = _k.next(); !_l.done; _l = _k.next()) {
                     var r = _l.value;
@@ -4975,10 +4982,18 @@ var __values = (this && this.__values) || function(o) {
                 }
                 finally { if (e_6) throw e_6.error; }
             }
-            if (this.wolf && !this.wolf.leaving && Math.hypot(this.wolf.x - d.x, this.wolf.y - d.y) < S.BARK_R * 1.25) {
-                this.wolf.leaving = true;
-                this.wolf.scaredBy = d;
-                this.floatText(this.wolf.x, this.wolf.y - 14, 'CAI CAI!', '#ffffff');
+            var w = this.wolf;
+            if (w && !w.leaving && w.retreatT <= 0 && Math.hypot(w.x - d.x, w.y - d.y) < S.BARK_R * 1.25) {
+                w.scares++;
+                w.scaredBy = d;
+                w.lungeT = 0;
+                w.recoverT = 0;
+                w.target = null;
+                if (w.scares >= S.WOLF_SCARES)
+                    w.leaving = true;
+                else
+                    w.retreatT = 2.2;
+                this.floatText(w.x, w.y - 14, 'CAI CAI!', '#ffffff');
                 this.emit('sfx', 'whimper');
             }
             return n;
@@ -5217,21 +5232,35 @@ var __values = (this && this.__values) || function(o) {
             }
             return -1;
         };
-        SheepGame.prototype.updateScores = function () {
-            var e_13, _a, e_14, _b;
+        SheepGame.prototype.updateScores = function (dt) {
+            var e_13, _a, e_14, _b, e_15, _c;
             var sc = [0, 0, 0, 0];
+            try {
+                for (var _d = __values(this.dogs), _e = _d.next(); !_e.done; _e = _d.next()) {
+                    var d = _e.value;
+                    sc[d.slot] = d.banked;
+                }
+            }
+            catch (e_13_1) { e_13 = { error: e_13_1 }; }
+            finally {
+                try {
+                    if (_e && !_e.done && (_a = _d.return)) _a.call(_d);
+                }
+                finally { if (e_13) throw e_13.error; }
+            }
             var _loop_1 = function (s) {
                 var p = this_1.penOf(s.x, s.y);
                 if (p !== s.pen) {
+                    s.penT = 0;
                     if (p >= 0) {
                         s.followDog = null;
                         s.followT = 0;
                     }
                     if (p >= 0 && this_1.state === 'play') {
                         var d = this_1.dogs.find(function (x) { return x.slot === p; });
-                        var v = s.golden ? S.GOLDEN_VALUE : 1;
+                        var v_1 = s.golden ? S.GOLDEN_VALUE : 1;
                         if (d) {
-                            this_1.floatText(s.x, s.y - 12, '+' + v, ROOM.PLAYERS[p].light);
+                            this_1.floatText(s.x, s.y - 12, '+' + v_1, ROOM.PLAYERS[p].light);
                             this_1.emit('sfx', s.golden ? 'golden' : 'point');
                             this_1.emit('buzz', { d: d, pattern: [25] });
                             this_1.emit('point', d);
@@ -5244,42 +5273,55 @@ var __values = (this && this.__values) || function(o) {
                     }
                     s.pen = p;
                 }
+                var v = s.golden ? S.GOLDEN_VALUE : 1;
+                if (p >= 0 && this_1.state === 'play') {
+                    s.penT += dt;
+                    var d = this_1.dogs.find(function (x) { return x.slot === p; });
+                    if (d && s.penT >= S.PEN_STAY) {
+                        d.banked += v;
+                        this_1.sheep.splice(this_1.sheep.indexOf(s), 1);
+                        this_1.puff(s.x, s.y, s.golden ? '#ffe14a' : ROOM.PLAYERS[p].light);
+                        this_1.floatText(s.x, s.y - 12, 'SALVA!', ROOM.PLAYERS[p].light);
+                        sc[p] += v;
+                        return "continue";
+                    }
+                }
                 if (p >= 0)
-                    sc[p] += s.golden ? S.GOLDEN_VALUE : 1;
+                    sc[p] += v;
             };
             var this_1 = this;
             try {
-                for (var _c = __values(this.sheep), _d = _c.next(); !_d.done; _d = _c.next()) {
-                    var s = _d.value;
+                for (var _f = __values(this.sheep.slice()), _g = _f.next(); !_g.done; _g = _f.next()) {
+                    var s = _g.value;
                     _loop_1(s);
                 }
             }
-            catch (e_13_1) { e_13 = { error: e_13_1 }; }
+            catch (e_14_1) { e_14 = { error: e_14_1 }; }
             finally {
                 try {
-                    if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+                    if (_g && !_g.done && (_b = _f.return)) _b.call(_f);
                 }
-                finally { if (e_13) throw e_13.error; }
+                finally { if (e_14) throw e_14.error; }
             }
             try {
-                for (var _e = __values(this.dogs), _f = _e.next(); !_f.done; _f = _e.next()) {
-                    var d = _f.value;
+                for (var _h = __values(this.dogs), _j = _h.next(); !_j.done; _j = _h.next()) {
+                    var d = _j.value;
                     if (d.score !== sc[d.slot]) {
                         d.score = sc[d.slot];
                         this.emit('hud', d);
                     }
                 }
             }
-            catch (e_14_1) { e_14 = { error: e_14_1 }; }
+            catch (e_15_1) { e_15 = { error: e_15_1 }; }
             finally {
                 try {
-                    if (_f && !_f.done && (_b = _e.return)) _b.call(_e);
+                    if (_j && !_j.done && (_c = _h.return)) _c.call(_h);
                 }
-                finally { if (e_14) throw e_14.error; }
+                finally { if (e_15) throw e_15.error; }
             }
         };
         SheepGame.prototype.updateGold = function (dt) {
-            var e_15, _a, e_16, _b;
+            var e_16, _a, e_17, _b;
             var free = this.sheep.filter(function (s) { return s.pen < 0; }).length + this.respawnQueue.length;
             if (this.waveT > 0) {
                 this.waveT -= dt;
@@ -5306,12 +5348,12 @@ var __values = (this && this.__values) || function(o) {
                     r.t -= dt;
                 }
             }
-            catch (e_15_1) { e_15 = { error: e_15_1 }; }
+            catch (e_16_1) { e_16 = { error: e_16_1 }; }
             finally {
                 try {
                     if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
                 }
-                finally { if (e_15) throw e_15.error; }
+                finally { if (e_16) throw e_16.error; }
             }
             var ready = this.respawnQueue.filter(function (r) { return r.t <= 0; });
             this.respawnQueue = this.respawnQueue.filter(function (r) { return r.t > 0; });
@@ -5325,12 +5367,12 @@ var __values = (this && this.__values) || function(o) {
                     this.emit('sfx', 'baa');
                 }
             }
-            catch (e_16_1) { e_16 = { error: e_16_1 }; }
+            catch (e_17_1) { e_17 = { error: e_17_1 }; }
             finally {
                 try {
                     if (ready_1_1 && !ready_1_1.done && (_b = ready_1.return)) _b.call(ready_1);
                 }
-                finally { if (e_16) throw e_16.error; }
+                finally { if (e_17) throw e_17.error; }
             }
             if (this.goldTimer <= 0) {
                 this.goldTimer = S.GOLDEN_EVERY;
@@ -5345,12 +5387,21 @@ var __values = (this && this.__values) || function(o) {
             }
         };
         SheepGame.prototype.updateWolf = function (dt) {
-            var e_17, _a;
+            var e_18, _a;
             this.wolfTimer -= dt;
             if (!this.wolf && this.wolfTimer <= 0 && this.time > 12) {
                 this.wolfTimer = S.WOLF_EVERY;
-                var top = Math.random() < 0.5;
-                this.wolf = { x: S.MAP_W / 2 + rand(-40, 40), y: top ? 12 : S.MAP_H - 12, vx: 0, vy: 0, life: S.WOLF_LIFE, leaving: false, left: false, walkT: 0, target: null, eaten: 0 };
+                var side_1 = Math.floor(Math.random() * 4);
+                var open = this.map.open().filter(function (t) { return (side_1 === 0 ? t.ty <= 2 && t.tx > 14 && t.tx < S.COLS - 15
+                    : side_1 === 1 ? t.ty >= S.ROWS - 3 && t.tx > 14 && t.tx < S.COLS - 15
+                        : side_1 === 2 ? t.tx <= 2 && t.ty > 8 && t.ty < S.ROWS - 9
+                            : t.tx >= S.COLS - 3 && t.ty > 8 && t.ty < S.ROWS - 9); });
+                var at = open.length ? open[Math.floor(Math.random() * open.length)] : { x: S.MAP_W / 2, y: 12 };
+                this.wolf = {
+                    x: at.x, y: at.y, vx: 0, vy: 0, life: S.WOLF_LIFE, leaving: false, left: at.x > S.MAP_W / 2, walkT: 0,
+                    target: null, retarget: 0, eaten: 0, scares: 0, scaredBy: null,
+                    retreatT: 0, lungeT: 0, lungeCd: 1.2, recoverT: 0, lungeDx: 0, lungeDy: 0, phase: rand(0, 6),
+                };
                 this.showBanner('ARRIVA IL LUPO!', '#ff3b3b', 1.6);
                 this.emit('sfx', 'howl');
                 this.shake = 2;
@@ -5361,72 +5412,153 @@ var __values = (this && this.__values) || function(o) {
             w.life -= dt;
             if (w.life <= 0)
                 w.leaving = true;
-            var tx, ty;
+            w.retreatT = Math.max(0, w.retreatT - dt);
+            var wasLunging = w.lungeT > 0;
+            w.lungeT = Math.max(0, w.lungeT - dt);
+            w.lungeCd = Math.max(0, w.lungeCd - dt);
+            w.recoverT = Math.max(0, w.recoverT - dt);
+            if (wasLunging && w.lungeT === 0)
+                w.recoverT = 0.7;
+            var vx = 0, vy = 0, anim = 1.5;
             if (w.leaving) {
-                tx = w.x;
-                ty = w.y < S.MAP_H / 2 ? -20 : S.MAP_H + 20;
-                if (w.scaredBy) {
+                var tx = w.x;
+                var ty = w.y < S.MAP_H / 2 ? -20 : S.MAP_H + 20;
+                if (w.scaredBy)
                     tx = w.x + (w.x - w.scaredBy.x) * 2;
-                }
+                var dx = tx - w.x, dy = ty - w.y, d = Math.hypot(dx, dy) || 1;
+                vx = dx / d * S.WOLF_SPEED * 1.5;
+                vy = dy / d * S.WOLF_SPEED * 1.5;
+                anim = 2.2;
+            }
+            else if (w.retreatT > 0 && w.scaredBy) {
+                var dx = w.x - w.scaredBy.x, dy = w.y - w.scaredBy.y, d = Math.hypot(dx, dy) || 1;
+                vx = dx / d * S.WOLF_SPEED * 1.4;
+                vy = dy / d * S.WOLF_SPEED * 1.4;
+                anim = 2.2;
+            }
+            else if (w.lungeT > 0) {
+                vx = w.lungeDx * S.WOLF_LUNGE_SPEED;
+                vy = w.lungeDy * S.WOLF_LUNGE_SPEED;
+                anim = 3.2;
+                if (Math.random() < 0.6)
+                    this.particles.push({ x: w.x, y: w.y, z: 0, vx: rand(-12, 12), vy: rand(-6, 6), vz: 20, life: 0.3, color: '#8a7a68' });
+            }
+            else if (w.recoverT > 0) {
+                vx = w.vx * 0.2;
+                vy = w.vy * 0.2;
+                anim = 0.6;
             }
             else {
-                var best = null, bd = 1e9;
+                w.retarget -= dt;
+                if (!w.target || w.retarget <= 0 || this.sheep.indexOf(w.target) < 0 || w.target.pen >= 0) {
+                    w.target = this.pickWolfTarget(w);
+                    w.retarget = 1.2;
+                }
+                var t = w.target;
+                if (t) {
+                    var dx = t.x - w.x, dy = t.y - w.y, dist = Math.hypot(dx, dy) || 1;
+                    if (dist < S.WOLF_LUNGE_R && w.lungeCd <= 0) {
+                        var lx = t.x + t.vx * 0.25 - w.x, ly = t.y + t.vy * 0.25 - w.y, ld = Math.hypot(lx, ly) || 1;
+                        w.lungeDx = lx / ld;
+                        w.lungeDy = ly / ld;
+                        w.lungeT = S.WOLF_LUNGE_TIME;
+                        w.lungeCd = S.WOLF_LUNGE_CD;
+                        this.floatText(w.x, w.y - 16, 'GRRR!', '#ff5a5a');
+                        this.emit('sfx', 'dash');
+                    }
+                    else {
+                        var nx = dx / dist, ny = dy / dist;
+                        var zig = Math.sin(this.clock * 4 + w.phase) * 0.55;
+                        vx = (nx - ny * zig) * S.WOLF_SPEED;
+                        vy = (ny + nx * zig) * S.WOLF_SPEED;
+                    }
+                }
+                else {
+                    var dx = S.MAP_W / 2 - w.x, dy = S.MAP_H / 2 - w.y, d = Math.hypot(dx, dy) || 1;
+                    vx = dx / d * S.WOLF_SPEED * 0.6;
+                    vy = dy / d * S.WOLF_SPEED * 0.6;
+                }
+            }
+            w.vx = vx;
+            w.vy = vy;
+            if (w.leaving) {
+                w.x += vx * dt;
+                w.y += vy * dt;
+            }
+            else
+                this.move(w, vx * dt, vy * dt, 3);
+            if (Math.abs(vx) > 2)
+                w.left = vx < 0;
+            w.walkT += dt * anim;
+            if (!w.leaving && w.retreatT <= 0) {
                 try {
                     for (var _b = __values(this.sheep), _c = _b.next(); !_c.done; _c = _b.next()) {
                         var s = _c.value;
                         if (s.pen >= 0)
                             continue;
-                        var d_1 = Math.hypot(s.x - w.x, s.y - w.y);
-                        if (d_1 < bd) {
-                            bd = d_1;
-                            best = s;
+                        if (Math.hypot(s.x - w.x, s.y - w.y) < 6) {
+                            this.eat(s);
+                            break;
                         }
                     }
                 }
-                catch (e_17_1) { e_17 = { error: e_17_1 }; }
+                catch (e_18_1) { e_18 = { error: e_18_1 }; }
                 finally {
                     try {
                         if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
                     }
-                    finally { if (e_17) throw e_17.error; }
-                }
-                if (best) {
-                    tx = best.x;
-                    ty = best.y;
-                    if (bd < 5)
-                        this.eat(best);
-                }
-                else {
-                    tx = S.MAP_W / 2;
-                    ty = S.MAP_H / 2;
+                    finally { if (e_18) throw e_18.error; }
                 }
             }
-            var dx = tx - w.x, dy = ty - w.y, d = Math.hypot(dx, dy) || 1;
-            var sp = S.WOLF_SPEED * (w.leaving ? 1.4 : 1);
-            w.vx = dx / d * sp;
-            w.vy = dy / d * sp;
-            if (w.leaving) {
-                w.x += w.vx * dt;
-                w.y += w.vy * dt;
-            }
-            else
-                this.move(w, w.vx * dt, w.vy * dt, 3);
-            w.left = w.vx < 0;
-            w.walkT += dt * 1.5;
-            if (w.leaving && (w.y < -16 || w.y > S.MAP_H + 16 || w.x < -16 || w.x > S.MAP_W + 16))
+            if (this.wolf && w.leaving && (w.y < -16 || w.y > S.MAP_H + 16 || w.x < -16 || w.x > S.MAP_W + 16))
                 this.wolf = null;
         };
+        SheepGame.prototype.pickWolfTarget = function (w) {
+            var e_19, _a;
+            var best = null, bs = 1e9;
+            try {
+                for (var _b = __values(this.sheep), _c = _b.next(); !_c.done; _c = _b.next()) {
+                    var s = _c.value;
+                    if (s.pen >= 0)
+                        continue;
+                    var score = Math.hypot(s.x - w.x, s.y - w.y) + rand(0, 14);
+                    if (s.followDog)
+                        score -= 40;
+                    if (s.golden)
+                        score -= 35;
+                    if (score < bs) {
+                        bs = score;
+                        best = s;
+                    }
+                }
+            }
+            catch (e_19_1) { e_19 = { error: e_19_1 }; }
+            finally {
+                try {
+                    if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                }
+                finally { if (e_19) throw e_19.error; }
+            }
+            return best;
+        };
         SheepGame.prototype.eat = function (s) {
+            var w = this.wolf;
             this.sheep.splice(this.sheep.indexOf(s), 1);
             this.respawnQueue.push({ t: S.SHEEP_RESPAWN, golden: false });
             this.puff(s.x, s.y, s.golden ? '#ffe14a' : '#ffffff');
             this.floatText(s.x, s.y - 12, 'GNAM!', '#ff5a5a');
             this.emit('sfx', 'chomp');
             this.shake = 2;
-            this.wolf.leaving = true;
+            w.eaten++;
+            w.target = null;
+            w.lungeT = 0;
+            if (w.eaten >= S.WOLF_MAX_EAT)
+                w.leaving = true;
+            else
+                w.recoverT = 1;
         };
         SheepGame.prototype.end = function () {
-            var e_18, _a;
+            var e_20, _a;
             if (this.state === 'over')
                 return;
             this.state = 'over';
@@ -5436,12 +5568,12 @@ var __values = (this && this.__values) || function(o) {
                     s.followDog = null;
                 }
             }
-            catch (e_18_1) { e_18 = { error: e_18_1 }; }
+            catch (e_20_1) { e_20 = { error: e_20_1 }; }
             finally {
                 try {
                     if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
                 }
-                finally { if (e_18) throw e_18.error; }
+                finally { if (e_20) throw e_20.error; }
             }
             this.showBanner('TEMPO!', '#ffd23b', 2);
             this.emit('sfx', 'whistle');
@@ -5640,6 +5772,8 @@ var __read = (this && this.__read) || function (o, n) {
         drawCenter(g);
     }
     function drawSheep(s, g) {
+        if (s.pen >= 0 && s.penT > S.PEN_STAY - 0.9 && Math.floor(g.clock * 14) % 2)
+            return;
         var art = s.golden ? SheepArt.gold : SheepArt.sheep;
         var moving = Math.hypot(s.vx, s.vy) > 3;
         var fr = moving && Math.floor(s.walkT * 8) % 2 ? art.b : art.a;
@@ -5680,8 +5814,8 @@ var __read = (this && this.__read) || function (o, n) {
         var fr = Math.floor(w.walkT * 10) % 2 ? SheepArt.wolf.b : SheepArt.wolf.a;
         shadow(w.x, w.y + 1, 6);
         ctx.drawImage(w.left ? fr.left : fr.right, R(w.x - 7), R(w.y - 8));
-        if (!w.leaving && Math.floor(g.clock * 4) % 2)
-            PixelFont.draw(ctx, '!', w.x, w.y - 20, { color: '#ff3b3b', align: 'center' });
+        if (!w.leaving && Math.floor(g.clock * (w.lungeT > 0 ? 12 : 4)) % 2)
+            PixelFont.draw(ctx, w.lungeT > 0 ? '!!' : '!', w.x, w.y - 20, { color: '#ff3b3b', align: 'center' });
     }
     function drawHUD(g, opts) {
         var e_8, _a;
@@ -6636,6 +6770,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
         MISS_LOCK: 2,
         HINT_FIRST: 70,
         HINT_EVERY: 40,
+        SOLUTIONS_TIME: 12,
     };
     var K = '#1b1b26';
     var DiffGame = (function () {
@@ -6837,7 +6972,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
                 time: Math.ceil(this.time),
                 lock: p.lockT > 0 ? 1 : 0,
                 state: this.state,
-                all: this.state === 'over' ? this.diffs.map(function (d) { return [Math.round(d.x), Math.round(d.y), Math.round(d.r)]; }) : null,
+                all: this.state === 'over' ? this.diffs.map(function (d, i) { return [Math.round(d.x), Math.round(d.y), Math.round(d.r), p.found.has(i) ? 1 : 0]; }) : null,
             };
         };
         DiffGame.prototype.draw = function (ctx, opts) {
@@ -6853,10 +6988,21 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
                 ring(ctx, cx(this.hint.x), cy(this.hint.y), this.hint.r, '#ffffff');
             if (this.state === 'over') {
                 var n = Math.min(this.diffs.length, Math.floor(this.revealT / 0.15));
+                var _loop_1 = function (i) {
+                    var d = this_1.diffs[i];
+                    if (this_1.players.some(function (p) { return p.found.has(i); })) {
+                        ring(ctx, cx(d.x), cy(d.y), d.r, '#5ff27a');
+                    }
+                    else {
+                        ring(ctx, cx(d.x), cy(d.y), d.r, '#ff3b3b');
+                        ring(ctx, cx(d.x), cy(d.y), d.r + 1, '#ff3b3b');
+                        if (Math.floor(this_1.clock * 4) % 2)
+                            ring(ctx, cx(d.x), cy(d.y), d.r + 2, '#ffffff');
+                    }
+                };
+                var this_1 = this;
                 for (var i = 0; i < n; i++) {
-                    var d = this.diffs[i];
-                    ring(ctx, cx(d.x), cy(d.y), d.r, '#ff3b3b');
-                    ring(ctx, cx(d.x), cy(d.y), d.r + 1, '#ffffff');
+                    _loop_1(i);
                 }
             }
             if (opts.demo)
@@ -6887,7 +7033,14 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
                 if (!p.connected && Math.floor(_this.clock * 2) % 2)
                     PixelFont.draw(ctx, 'OFF', px0 + 36, y + 3, { color: '#ffffff', outline: null });
             });
-            PixelFont.draw(ctx, 'TOCCA SUL TELEFONO DOVE VEDI UNA DIFFERENZA', CFG.SX + DiffScene.SW / 2, CFG.H - 10, { color: '#9aa0ad', align: 'center', outline: null });
+            if (this.state === 'over') {
+                var missed = this.diffs.filter(function (d, i) { return !_this.players.some(function (p) { return p.found.has(i); }); }).length;
+                var msg = missed ? 'IN ROSSO: ' + missed + (missed === 1 ? ' DIFFERENZA NON TROVATA' : ' DIFFERENZE NON TROVATE') : 'TUTTE LE DIFFERENZE TROVATE!';
+                PixelFont.draw(ctx, msg, CFG.SX + DiffScene.SW / 2, CFG.H - 10, { color: missed ? '#ff6b6b' : '#5ff27a', align: 'center', outline: null });
+            }
+            else {
+                PixelFont.draw(ctx, 'TOCCA SUL TELEFONO DOVE VEDI UNA DIFFERENZA', CFG.SX + DiffScene.SW / 2, CFG.H - 10, { color: '#9aa0ad', align: 'center', outline: null });
+            }
             if (opts.roomCode)
                 PixelFont.draw(ctx, opts.roomCode, CFG.W - 4, CFG.H - 10, { color: '#6b6f7a', align: 'right', outline: null });
             var mid = CFG.SY + DiffScene.SH / 2;
@@ -7045,7 +7198,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
                 this.room.hudChanged(data.slot);
             else if (type === 'over') {
                 var ranking = data.map(function (p) { return ({ slot: p.slot, name: p.name, bot: false, detail: p.found.size + '/' + _this.game.diffs.length + ' TROVATE' }); });
-                this.room.finish(ranking, { delay: 3000, voice: 'Winner! ' + data[0].name.toLowerCase() });
+                this.room.finish(ranking, { delay: C.SOLUTIONS_TIME * 1000, holdPhones: true, voice: 'Winner! ' + data[0].name.toLowerCase() });
             }
         };
         DiffSession.prototype.stop = function () { Sfx.stopMusic(); };
@@ -8035,6 +8188,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
         LIGHTS: 5,
         LIGHT_STEP: 0.7,
         FINISH_WAIT: 20,
+        CATCHUP_FROM: 0.03,
+        CATCHUP_SPAN: 0.12,
+        CATCHUP_MAX: 0.07,
         CPU_NAMES: ['CPU 1', 'CPU 2', 'CPU 3'],
     };
     var rand = function (a, b) { return a + Math.random() * (b - a); };
@@ -8140,7 +8296,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
             }
             k.surf = this.world.surfAt(k.x, k.y);
             var surfMul = KC.SURF_SPEED[k.surf] != null ? KC.SURF_SPEED[k.surf] : 1;
-            var max = KC.MAX_SPEED * surfMul * (k.turboT > 0 ? KC.TURBO_MULT : 1) * (k.isBot ? k.bot.skill * this.rubber(k) : 1);
+            var max = KC.MAX_SPEED * surfMul * (k.turboT > 0 ? KC.TURBO_MULT : 1) * (k.isBot ? k.bot.skill * this.rubber(k) : this.catchUp(k));
             var steer = Math.max(-1, Math.min(1, k.connected || k.isBot ? inp.steer : 0));
             if (inp.brake && (k.connected || k.isBot))
                 k.speed -= KC.BRAKE * dt;
@@ -8193,6 +8349,30 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
             return 1;
         };
         KartRace.prototype.dist = function (k) { return k.lap * this.N + k.idx; };
+        KartRace.prototype.catchUp = function (k) {
+            var e_2, _a;
+            if (this.state !== 'race' || k.finished)
+                return 1;
+            var lead = -1e9;
+            try {
+                for (var _b = __values(this.karts), _c = _b.next(); !_c.done; _c = _b.next()) {
+                    var q = _c.value;
+                    if (!q.finished)
+                        lead = Math.max(lead, this.dist(q));
+                }
+            }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            finally {
+                try {
+                    if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                }
+                finally { if (e_2) throw e_2.error; }
+            }
+            var gap = (lead - this.dist(k)) / this.N;
+            if (gap <= KC.CATCHUP_FROM)
+                return 1;
+            return 1 + Math.min(KC.CATCHUP_MAX, (gap - KC.CATCHUP_FROM) / KC.CATCHUP_SPAN * KC.CATCHUP_MAX);
+        };
         KartRace.prototype.progress = function (k) {
             var S = this.world.samples, N = this.N;
             var best = k.idx, bd = 1e9;
@@ -8254,7 +8434,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
         };
         KartRace.prototype.flash = function (k, text) { k.msg = { text: text, t: 2 }; };
         KartRace.prototype.rank = function () {
-            var e_2, _a;
+            var e_3, _a;
             var _this = this;
             var order = this.karts.slice().sort(function (a, b) {
                 if (a.finished && b.finished)
@@ -8280,12 +8460,12 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
                     }
                 }
             }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
             finally {
                 try {
                     if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
                 }
-                finally { if (e_2) throw e_2.error; }
+                finally { if (e_3) throw e_3.error; }
             }
             return order;
         };
@@ -9494,7 +9674,11 @@ var __read = (this && this.__read) || function (o, n) {
         lastRanking = ranking.map(function (r) { return ({ slot: r.slot, name: r.name, bot: !!r.bot, detail: r.detail || '', pts: r.pts }); });
         var delay = opts.delay || 0;
         overShownAt = performance.now() + delay;
-        broadcastYou();
+        if (opts.holdPhones)
+            setTimeout(function () { if (phase === 'over')
+                broadcastYou(); }, delay);
+        else
+            broadcastYou();
         setTimeout(function () {
             if (phase !== 'over')
                 return;

@@ -508,7 +508,8 @@
     DiffScene.draw(dctx, diffScene, 0, 0);
     const col = (me && me.color) || '#ffd23b';
     if (diffHud) {
-      if (diffHud.all) for (const [x, y, r] of diffHud.all) { circle(x, y, r, '#ff3b3b'); }
+      // fine partita: in rosso (doppio cerchio) le differenze che MI mancavano
+      if (diffHud.all) for (const [x, y, r, f] of diffHud.all) { if (!f) { circle(x, y, r, '#ff3b3b'); circle(x, y, r + 1, '#ff3b3b'); circle(x, y, r + 2, '#ffffff'); } }
       for (const [x, y, r] of diffHud.found) { circle(x, y, r, col); circle(x, y, r + 1, '#ffffff'); circle(x, y, r - 1, col); }
     }
     // piccoli segni dei tocchi recenti
@@ -525,7 +526,10 @@
     $('diffFound').textContent = h.found.length;
     $('diffTotal').textContent = h.total;
     const t = Math.max(0, h.time);
-    $('diffTime').textContent = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+    if (h.all) {
+      const missing = h.all.filter((a) => !a[3]).length;
+      $('diffTime').textContent = missing ? missing + ' MANCATE' : 'TUTTE!';
+    } else $('diffTime').textContent = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
     $('diffLock').classList.toggle('hidden', !h.lock);
     if (h.found.length > prev) { const el = $('diffFlash'); el.className = 'flash-layer on'; setTimeout(() => { el.className = 'flash-layer'; }, 80); }
     drawDiff();

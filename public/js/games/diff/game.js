@@ -19,6 +19,7 @@
     MISS_LOCK: 2,            // secondi di blocco dopo un tocco sbagliato
     HINT_FIRST: 70,          // primo aiutino dopo N secondi
     HINT_EVERY: 40,
+    SOLUTIONS_TIME: 12,      // a fine partita, per quanti secondi restano visibili le soluzioni prima della classifica
   };
   const K = '#1b1b26';
 
@@ -150,8 +151,8 @@
         time: Math.ceil(this.time),
         lock: p.lockT > 0 ? 1 : 0,
         state: this.state,
-        // a fine partita il telefono mostra tutte le differenze
-        all: this.state === 'over' ? this.diffs.map((d) => [Math.round(d.x), Math.round(d.y), Math.round(d.r)]) : null,
+        // a fine partita il telefono mostra tutte le differenze; l'ultimo valore è 1 se questo giocatore l'aveva trovata
+        all: this.state === 'over' ? this.diffs.map((d, i) => [Math.round(d.x), Math.round(d.y), Math.round(d.r), p.found.has(i) ? 1 : 0]) : null,
       };
     }
 
@@ -169,12 +170,18 @@
       // aiutino
       if (this.hint && Math.floor(this.clock * 6) % 2) ring(ctx, cx(this.hint.x), cy(this.hint.y), this.hint.r, '#ffffff');
       // a fine partita: si svelano tutte le differenze una alla volta
+      // verde = trovata da qualcuno, rosso lampeggiante = non l'ha trovata nessuno
       if (this.state === 'over') {
         const n = Math.min(this.diffs.length, Math.floor(this.revealT / 0.15));
         for (let i = 0; i < n; i++) {
           const d = this.diffs[i];
-          ring(ctx, cx(d.x), cy(d.y), d.r, '#ff3b3b');
-          ring(ctx, cx(d.x), cy(d.y), d.r + 1, '#ffffff');
+          if (this.players.some((p) => p.found.has(i))) {
+            ring(ctx, cx(d.x), cy(d.y), d.r, '#5ff27a');
+          } else {
+            ring(ctx, cx(d.x), cy(d.y), d.r, '#ff3b3b');
+            ring(ctx, cx(d.x), cy(d.y), d.r + 1, '#ff3b3b');
+            if (Math.floor(this.clock * 4) % 2) ring(ctx, cx(d.x), cy(d.y), d.r + 2, '#ffffff');
+          }
         }
       }
       if (opts.demo) return;
@@ -207,7 +214,13 @@
       });
 
       // barra in basso
-      PixelFont.draw(ctx, 'TOCCA SUL TELEFONO DOVE VEDI UNA DIFFERENZA', CFG.SX + DiffScene.SW / 2, CFG.H - 10, { color: '#9aa0ad', align: 'center', outline: null });
+      if (this.state === 'over') {
+        const missed = this.diffs.filter((d, i) => !this.players.some((p) => p.found.has(i))).length;
+        const msg = missed ? 'IN ROSSO: ' + missed + (missed === 1 ? ' DIFFERENZA NON TROVATA' : ' DIFFERENZE NON TROVATE') : 'TUTTE LE DIFFERENZE TROVATE!';
+        PixelFont.draw(ctx, msg, CFG.SX + DiffScene.SW / 2, CFG.H - 10, { color: missed ? '#ff6b6b' : '#5ff27a', align: 'center', outline: null });
+      } else {
+        PixelFont.draw(ctx, 'TOCCA SUL TELEFONO DOVE VEDI UNA DIFFERENZA', CFG.SX + DiffScene.SW / 2, CFG.H - 10, { color: '#9aa0ad', align: 'center', outline: null });
+      }
       if (opts.roomCode) PixelFont.draw(ctx, opts.roomCode, CFG.W - 4, CFG.H - 10, { color: '#6b6f7a', align: 'right', outline: null });
 
       // conto alla rovescia e scritte

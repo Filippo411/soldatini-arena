@@ -8,7 +8,8 @@
     W: 384, H: 216, HUD_TOP: 12, HUD_BOTTOM: 12,
     TILE: 8, COLS: 48, ROWS: 24,
 
-    MATCH_TIME: 240,        // secondi (4 minuti)
+    MATCH_TIME: 180,        // secondi (3 minuti)
+    PEN_STAY: 3,            // dopo quanti secondi nel recinto una pecora sparisce e resta nel punteggio
     WAVE_MIN_FREE: 3,       // se in campo restano così poche pecore libere...
     WAVE_SIZE: 12,          // ...arriva un nuovo gregge di N pecore
     MAX_SHEEP: 70,          // limite totale (per non rallentare)
@@ -34,10 +35,16 @@
     SHEEP_FLEE_SPEED: 60,
 
     // Lupo
-    WOLF_FIRST: 32,         // primo lupo dopo N secondi
-    WOLF_EVERY: 28,
-    WOLF_SPEED: 50,
-    WOLF_LIFE: 13,
+    WOLF_FIRST: 22,         // primo lupo dopo N secondi
+    WOLF_EVERY: 22,
+    WOLF_SPEED: 52,         // andatura "da appostamento" (a zig-zag)
+    WOLF_LUNGE_SPEED: 125,  // scatto verso la preda
+    WOLF_LUNGE_R: 48,       // a questa distanza dalla preda scatta
+    WOLF_LUNGE_TIME: 0.5,
+    WOLF_LUNGE_CD: 1.3,     // pausa tra uno scatto e l'altro
+    WOLF_MAX_EAT: 2,        // quante pecore mangia prima di andarsene
+    WOLF_SCARES: 2,         // quanti abbai servono per cacciarlo (la prima volta indietreggia e torna)
+    WOLF_LIFE: 15,
     WOLF_FEAR_R: 58,        // le pecore scappano dal lupo entro questa distanza
     SHEEP_RESPAWN: 7,       // una pecora mangiata ritorna dopo N secondi
 

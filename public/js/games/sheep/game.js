@@ -29,7 +29,7 @@
           slot: d.slot, name: d.name, isBot: !!d.isBot, connected: true,
           x: p.spawnX, y: p.spawnY, vx: 0, vy: 0, left: p.dir < 0, moving: false, walkT: 0,
           input: { x: 0, y: 0, bark: false, dash: false },
-          barkCd: 0, dashCd: 0, dashT: 0, barkT: 0, score: 0, bot: null,
+          barkCd: 0, dashCd: 0, dashT: 0, barkT: 0, score: 0, banked: 0, bot: null,
         };
       });
       this.sheep = [];
@@ -58,7 +58,7 @@
         x: t.x + rand(-2, 2), y: t.y + rand(-2, 2), vx: 0, vy: 0,
         golden, heading: rand(0, Math.PI * 2), wanderT: rand(0, 2), graze: rand(0, 2),
         followDog: null, followT: 0, fleeT: 0, left: Math.random() < 0.5, walkT: 0,
-        pen: -1, alertT: 0, bleatT: rand(3, 15),
+        pen: -1, penT: 0, alertT: 0, bleatT: rand(3, 15),
       });
     }
 
@@ -97,7 +97,7 @@
       // le pecore si muovono sempre (anche durante il conto alla rovescia: è carino)
       for (const s of this.sheep) this.updateSheep(s, dt);
       this.separate();
-      this.updateScores();
+      this.updateScores(dt);
       for (const r of this.rings) r.t += dt;
       this.rings = this.rings.filter((r) => r.t < 0.5);
       for (const t of this.texts) { t.t += dt; t.y -= dt * 12; }
@@ -148,11 +148,14 @@
           s.followDog = d; s.followT = S.ATTRACT_TIME; s.fleeT = 0; s.alertT = 0.4; n++;
         }
       }
-      // il lupo ha paura degli abbai
-      if (this.wolf && !this.wolf.leaving && Math.hypot(this.wolf.x - d.x, this.wolf.y - d.y) < S.BARK_R * 1.25) {
-        this.wolf.leaving = true;
-        this.wolf.scaredBy = d;
-        this.floatText(this.wolf.x, this.wolf.y - 14, 'CAI CAI!', '#ffffff');
+      // il lupo ha paura degli abbai: la prima volta indietreggia (e poi torna), la seconda se ne va
+      const w = this.wolf;
+      if (w && !w.leaving && w.retreatT <= 0 && Math.hypot(w.x - d.x, w.y - d.y) < S.BARK_R * 1.25) {
+        w.scares++;
+        w.scaredBy = d;
+        w.lungeT = 0; w.recoverT = 0; w.target = null;
+        if (w.scares >= S.WOLF_SCARES) w.leaving = true; else w.retreatT = 2.2;
+        this.floatText(w.x, w.y - 14, 'CAI CAI!', '#ffffff');
         this.emit('sfx', 'whimper');
       }
       return n;
@@ -294,11 +297,14 @@
       }
       return -1;
     }
-    updateScores() {
+    updateScores(dt) {
+      // le pecore già "salvate" (sparite dal recinto) restano nel punteggio per sempre
       const sc = [0, 0, 0, 0];
-      for (const s of this.sheep) {
+      for (const d of this.dogs) sc[d.slot] = d.banked;
+      for (const s of this.sheep.slice()) {
         const p = this.penOf(s.x, s.y);
         if (p !== s.pen) {
+          s.penT = 0;
           // entrando in un recinto la pecora si "sistema": smette di seguire il cane
           if (p >= 0) { s.followDog = null; s.followT = 0; }
           // una pecora è entrata in un recinto!
@@ -317,7 +323,21 @@
           }
           s.pen = p;
         }
-        if (p >= 0) sc[p] += s.golden ? S.GOLDEN_VALUE : 1;
+        const v = s.golden ? S.GOLDEN_VALUE : 1;
+        // dopo PEN_STAY secondi dentro il recinto la pecora sparisce: il punto è al sicuro
+        if (p >= 0 && this.state === 'play') {
+          s.penT += dt;
+          const d = this.dogs.find((x) => x.slot === p);
+          if (d && s.penT >= S.PEN_STAY) {
+            d.banked += v;
+            this.sheep.splice(this.sheep.indexOf(s), 1);
+            this.puff(s.x, s.y, s.golden ? '#ffe14a' : ROOM.PLAYERS[p].light);
+            this.floatText(s.x, s.y - 12, 'SALVA!', ROOM.PLAYERS[p].light);
+            sc[p] += v;
+            continue;
+          }
+        }
+        if (p >= 0) sc[p] += v;
       }
       for (const d of this.dogs) {
         if (d.score !== sc[d.slot]) { d.score = sc[d.slot]; this.emit('hud', d); }
@@ -375,9 +395,18 @@
       this.wolfTimer -= dt;
       if (!this.wolf && this.wolfTimer <= 0 && this.time > 12) {
         this.wolfTimer = S.WOLF_EVERY;
-        // entra da metà di un lato (sopra o sotto), lontano dai recinti
-        const top = Math.random() < 0.5;
-        this.wolf = { x: S.MAP_W / 2 + rand(-40, 40), y: top ? 12 : S.MAP_H - 12, vx: 0, vy: 0, life: S.WOLF_LIFE, leaving: false, left: false, walkT: 0, target: null, eaten: 0 };
+        // entra da metà di uno dei quattro lati (lontano dai recinti negli angoli)
+        const side = Math.floor(Math.random() * 4);
+        const open = this.map.open().filter((t) => (side === 0 ? t.ty <= 2 && t.tx > 14 && t.tx < S.COLS - 15
+          : side === 1 ? t.ty >= S.ROWS - 3 && t.tx > 14 && t.tx < S.COLS - 15
+            : side === 2 ? t.tx <= 2 && t.ty > 8 && t.ty < S.ROWS - 9
+              : t.tx >= S.COLS - 3 && t.ty > 8 && t.ty < S.ROWS - 9));
+        const at = open.length ? open[Math.floor(Math.random() * open.length)] : { x: S.MAP_W / 2, y: 12 };
+        this.wolf = {
+          x: at.x, y: at.y, vx: 0, vy: 0, life: S.WOLF_LIFE, leaving: false, left: at.x > S.MAP_W / 2, walkT: 0,
+          target: null, retarget: 0, eaten: 0, scares: 0, scaredBy: null,
+          retreatT: 0, lungeT: 0, lungeCd: 1.2, recoverT: 0, lungeDx: 0, lungeDy: 0, phase: rand(0, 6),
+        };
         this.showBanner('ARRIVA IL LUPO!', '#ff3b3b', 1.6);
         this.emit('sfx', 'howl');
         this.shake = 2;
@@ -386,39 +415,98 @@
       if (!w) return;
       w.life -= dt;
       if (w.life <= 0) w.leaving = true;
-      let tx, ty;
+      w.retreatT = Math.max(0, w.retreatT - dt);
+      const wasLunging = w.lungeT > 0;
+      w.lungeT = Math.max(0, w.lungeT - dt);
+      w.lungeCd = Math.max(0, w.lungeCd - dt);
+      w.recoverT = Math.max(0, w.recoverT - dt);
+      if (wasLunging && w.lungeT === 0) w.recoverT = 0.7;   // fine dello scatto: riprende fiato
+
+      let vx = 0, vy = 0, anim = 1.5;
       if (w.leaving) {
         // scappa verso il bordo più vicino in alto/basso
-        tx = w.x; ty = w.y < S.MAP_H / 2 ? -20 : S.MAP_H + 20;
-        if (w.scaredBy) { tx = w.x + (w.x - w.scaredBy.x) * 2; }
+        let tx = w.x; const ty = w.y < S.MAP_H / 2 ? -20 : S.MAP_H + 20;
+        if (w.scaredBy) tx = w.x + (w.x - w.scaredBy.x) * 2;
+        const dx = tx - w.x, dy = ty - w.y, d = Math.hypot(dx, dy) || 1;
+        vx = dx / d * S.WOLF_SPEED * 1.5; vy = dy / d * S.WOLF_SPEED * 1.5; anim = 2.2;
+      } else if (w.retreatT > 0 && w.scaredBy) {
+        // spaventato da un abbaio: indietreggia di corsa, ma poi torna a caccia
+        const dx = w.x - w.scaredBy.x, dy = w.y - w.scaredBy.y, d = Math.hypot(dx, dy) || 1;
+        vx = dx / d * S.WOLF_SPEED * 1.4; vy = dy / d * S.WOLF_SPEED * 1.4; anim = 2.2;
+      } else if (w.lungeT > 0) {
+        // SCATTO: breve, veloce e dritto (le pecore non scappano abbastanza in fretta)
+        vx = w.lungeDx * S.WOLF_LUNGE_SPEED; vy = w.lungeDy * S.WOLF_LUNGE_SPEED; anim = 3.2;
+        if (Math.random() < 0.6) this.particles.push({ x: w.x, y: w.y, z: 0, vx: rand(-12, 12), vy: rand(-6, 6), vz: 20, life: 0.3, color: '#8a7a68' });
+      } else if (w.recoverT > 0) {
+        // dopo lo scatto (o dopo aver mangiato) riprende fiato: quasi fermo
+        vx = w.vx * 0.2; vy = w.vy * 0.2; anim = 0.6;
       } else {
-        // punta la pecora libera più vicina
-        let best = null, bd = 1e9;
+        // caccia: sceglie una preda (meglio se è portata da un cane o se è d'oro) e la insegue a zig-zag
+        w.retarget -= dt;
+        if (!w.target || w.retarget <= 0 || this.sheep.indexOf(w.target) < 0 || w.target.pen >= 0) {
+          w.target = this.pickWolfTarget(w);
+          w.retarget = 1.2;
+        }
+        const t = w.target;
+        if (t) {
+          const dx = t.x - w.x, dy = t.y - w.y, dist = Math.hypot(dx, dy) || 1;
+          if (dist < S.WOLF_LUNGE_R && w.lungeCd <= 0) {
+            // parte lo scatto, mirando un po' avanti rispetto a dove sta andando la pecora
+            const lx = t.x + t.vx * 0.25 - w.x, ly = t.y + t.vy * 0.25 - w.y, ld = Math.hypot(lx, ly) || 1;
+            w.lungeDx = lx / ld; w.lungeDy = ly / ld;
+            w.lungeT = S.WOLF_LUNGE_TIME; w.lungeCd = S.WOLF_LUNGE_CD;
+            this.floatText(w.x, w.y - 16, 'GRRR!', '#ff5a5a');
+            this.emit('sfx', 'dash');
+          } else {
+            const nx = dx / dist, ny = dy / dist;
+            const zig = Math.sin(this.clock * 4 + w.phase) * 0.55;   // zig-zag da predatore
+            vx = (nx - ny * zig) * S.WOLF_SPEED; vy = (ny + nx * zig) * S.WOLF_SPEED;
+          }
+        } else {
+          // niente pecore libere: gironzola verso il centro
+          const dx = S.MAP_W / 2 - w.x, dy = S.MAP_H / 2 - w.y, d = Math.hypot(dx, dy) || 1;
+          vx = dx / d * S.WOLF_SPEED * 0.6; vy = dy / d * S.WOLF_SPEED * 0.6;
+        }
+      }
+      w.vx = vx; w.vy = vy;
+      if (w.leaving) { w.x += vx * dt; w.y += vy * dt; } else this.move(w, vx * dt, vy * dt, 3);
+      if (Math.abs(vx) > 2) w.left = vx < 0;
+      w.walkT += dt * anim;
+
+      // mangia la pecora libera che ha a tiro (non quando scappa)
+      if (!w.leaving && w.retreatT <= 0) {
         for (const s of this.sheep) {
           if (s.pen >= 0) continue;
-          const d = Math.hypot(s.x - w.x, s.y - w.y);
-          if (d < bd) { bd = d; best = s; }
+          if (Math.hypot(s.x - w.x, s.y - w.y) < 6) { this.eat(s); break; }
         }
-        if (best) { tx = best.x; ty = best.y; if (bd < 5) this.eat(best); }
-        else { tx = S.MAP_W / 2; ty = S.MAP_H / 2; }
       }
-      const dx = tx - w.x, dy = ty - w.y, d = Math.hypot(dx, dy) || 1;
-      const sp = S.WOLF_SPEED * (w.leaving ? 1.4 : 1);
-      w.vx = dx / d * sp; w.vy = dy / d * sp;
-      if (w.leaving) { w.x += w.vx * dt; w.y += w.vy * dt; } else this.move(w, w.vx * dt, w.vy * dt, 3);
-      w.left = w.vx < 0;
-      w.walkT += dt * 1.5;
-      if (w.leaving && (w.y < -16 || w.y > S.MAP_H + 16 || w.x < -16 || w.x > S.MAP_W + 16)) this.wolf = null;
+      if (this.wolf && w.leaving && (w.y < -16 || w.y > S.MAP_H + 16 || w.x < -16 || w.x > S.MAP_W + 16)) this.wolf = null;
+    }
+
+    pickWolfTarget(w) {
+      let best = null, bs = 1e9;
+      for (const s of this.sheep) {
+        if (s.pen >= 0) continue;
+        let score = Math.hypot(s.x - w.x, s.y - w.y) + rand(0, 14);
+        if (s.followDog) score -= 40;      // le pecore che un cane sta portando a casa sono le più ghiotte
+        if (s.golden) score -= 35;
+        if (score < bs) { bs = score; best = s; }
+      }
+      return best;
     }
 
     eat(s) {
+      const w = this.wolf;
       this.sheep.splice(this.sheep.indexOf(s), 1);
       this.respawnQueue.push({ t: S.SHEEP_RESPAWN, golden: false });
       this.puff(s.x, s.y, s.golden ? '#ffe14a' : '#ffffff');
       this.floatText(s.x, s.y - 12, 'GNAM!', '#ff5a5a');
       this.emit('sfx', 'chomp');
       this.shake = 2;
-      this.wolf.leaving = true;   // con la pancia piena se ne va
+      w.eaten++;
+      w.target = null; w.lungeT = 0;
+      // dopo il pasto si ferma a masticare; con la pancia piena se ne va
+      if (w.eaten >= S.WOLF_MAX_EAT) w.leaving = true; else w.recoverT = 1;
     }
 
     // ------------------------------------------------------------------

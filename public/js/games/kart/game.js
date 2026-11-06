@@ -20,6 +20,9 @@
     LIGHTS: 5,
     LIGHT_STEP: 0.7,
     FINISH_WAIT: 20,      // dopo il primo arrivato, quanti secondi aspettare gli altri
+    CATCHUP_FROM: 0.03,   // rimonta: parte quando sei più di questa frazione di giro dietro al primo...
+    CATCHUP_SPAN: 0.12,   // ...e arriva al massimo dopo altrettanta frazione di giro in più
+    CATCHUP_MAX: 0.07,    // bonus massimo di velocità (+7%)
     CPU_NAMES: ['CPU 1', 'CPU 2', 'CPU 3'],
   };
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -104,7 +107,7 @@
       }
       k.surf = this.world.surfAt(k.x, k.y);
       const surfMul = KC.SURF_SPEED[k.surf] != null ? KC.SURF_SPEED[k.surf] : 1;
-      const max = KC.MAX_SPEED * surfMul * (k.turboT > 0 ? KC.TURBO_MULT : 1) * (k.isBot ? k.bot.skill * this.rubber(k) : 1);
+      const max = KC.MAX_SPEED * surfMul * (k.turboT > 0 ? KC.TURBO_MULT : 1) * (k.isBot ? k.bot.skill * this.rubber(k) : this.catchUp(k));
       const steer = Math.max(-1, Math.min(1, k.connected || k.isBot ? inp.steer : 0));
       if (inp.brake && (k.connected || k.isBot)) k.speed -= KC.BRAKE * dt;
       else k.speed += KC.ACCEL * (k.turboT > 0 ? 2 : 1) * dt;
@@ -143,6 +146,19 @@
       return 1;
     }
     dist(k) { return k.lap * this.N + k.idx; }
+
+    /**
+     * Rimonta per i giocatori: chi è dietro al primo va un pelino più veloce (fino a +CATCHUP_MAX),
+     * così la gara resta aperta. Parte da un po' di distacco e cresce piano piano.
+     */
+    catchUp(k) {
+      if (this.state !== 'race' || k.finished) return 1;
+      let lead = -1e9;
+      for (const q of this.karts) if (!q.finished) lead = Math.max(lead, this.dist(q));
+      const gap = (lead - this.dist(k)) / this.N;      // distacco in giri
+      if (gap <= KC.CATCHUP_FROM) return 1;
+      return 1 + Math.min(KC.CATCHUP_MAX, (gap - KC.CATCHUP_FROM) / KC.CATCHUP_SPAN * KC.CATCHUP_MAX);
+    }
 
     /** Avanzamento lungo la pista e conteggio dei giri */
     progress(k) {

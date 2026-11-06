@@ -45,7 +45,8 @@
       else if (type === 'hud') this.room.hudChanged(data.slot);
       else if (type === 'over') {
         const ranking = data.map((p) => ({ slot: p.slot, name: p.name, bot: false, detail: p.found.size + '/' + this.game.diffs.length + ' TROVATE' }));
-        this.room.finish(ranking, { delay: 3000, voice: 'Winner! ' + data[0].name.toLowerCase() });
+        // si aspetta un po' prima della classifica: TV e telefoni mostrano le soluzioni (quali differenze mancavano)
+        this.room.finish(ranking, { delay: C.SOLUTIONS_TIME * 1000, holdPhones: true, voice: 'Winner! ' + data[0].name.toLowerCase() });
       }
     }
     stop() { Sfx.stopMusic(); }

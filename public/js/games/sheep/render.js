@@ -69,6 +69,8 @@
   }
 
   function drawSheep(s, g) {
+    // nell'ultimo secondo prima di sparire dal recinto la pecora lampeggia
+    if (s.pen >= 0 && s.penT > S.PEN_STAY - 0.9 && Math.floor(g.clock * 14) % 2) return;
     const art = s.golden ? SheepArt.gold : SheepArt.sheep;
     const moving = Math.hypot(s.vx, s.vy) > 3;
     const fr = moving && Math.floor(s.walkT * 8) % 2 ? art.b : art.a;
@@ -105,7 +107,8 @@
     const fr = Math.floor(w.walkT * 10) % 2 ? SheepArt.wolf.b : SheepArt.wolf.a;
     shadow(w.x, w.y + 1, 6);
     ctx.drawImage(w.left ? fr.left : fr.right, R(w.x - 7), R(w.y - 8));
-    if (!w.leaving && Math.floor(g.clock * 4) % 2) PixelFont.draw(ctx, '!', w.x, w.y - 20, { color: '#ff3b3b', align: 'center' });
+    // durante lo scatto il "!" lampeggia veloce e diventa doppio
+    if (!w.leaving && Math.floor(g.clock * (w.lungeT > 0 ? 12 : 4)) % 2) PixelFont.draw(ctx, w.lungeT > 0 ? '!!' : '!', w.x, w.y - 20, { color: '#ff3b3b', align: 'center' });
   }
 
   function drawHUD(g, opts) {

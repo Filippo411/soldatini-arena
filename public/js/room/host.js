@@ -287,7 +287,9 @@
     lastRanking = ranking.map((r) => ({ slot: r.slot, name: r.name, bot: !!r.bot, detail: r.detail || '', pts: r.pts }));
     const delay = opts.delay || 0;
     overShownAt = performance.now() + delay;
-    broadcastYou();
+    // opts.holdPhones: i telefoni restano sulla schermata del gioco (es. per vedere le soluzioni) finché non arriva la classifica
+    if (opts.holdPhones) setTimeout(() => { if (phase === 'over') broadcastYou(); }, delay);
+    else broadcastYou();
     setTimeout(() => {
       if (phase !== 'over') return;
       showOver(lastRanking);
