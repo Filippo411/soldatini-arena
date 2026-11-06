@@ -210,7 +210,40 @@ body.ctrl {
 }
 .diff-found { color: var(--pc); font-size: 14px; }
 .diff-bar .pad-time { margin-left: auto; }
-#scrDiff .ko { inset: 0; }
+#scrDiff /* Pippo Kart */
+#scrKart { padding: 0; }
+.kart-select { display: flex; flex-direction: column; align-items: center; gap: 2vmin; padding: 10px; }
+.char-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.char-card { font-family: inherit; background: var(--ink2); border: 4px solid #3a3d48; color: #fff; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 7px; line-height: 1.4; min-width: 90px; touch-action: manipulation; }
+.char-card canvas { width: 60px; height: 60px; image-rendering: pixelated; }
+.char-card.mine { border-color: var(--pc); background: #3a2a10; }
+.char-card.taken { opacity: 0.4; }
+.track-row { display: flex; gap: 10px; }
+.track-btn { font-family: inherit; font-size: 10px; padding: 10px 14px; background: var(--ink2); color: #fff; border: 4px solid #3a3d48; touch-action: manipulation; }
+.track-btn.sel { border-color: var(--yellow); color: var(--yellow); }
+.kart-drive { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.kart-pos { font-size: 18px; color: var(--yellow); }
+.kart-lap { font-size: 12px; margin-left: 10px; }
+.kart-turbos { margin-left: auto; display: flex; gap: 5px; }
+.kart-turbos i { width: 12px; height: 16px; background: #ff9c3b; box-shadow: inset 0 0 0 3px #b85a12; }
+.kart-turbos i.used { background: #3a3d48; box-shadow: none; }
+.drive-body { flex: 1; position: relative; display: flex; align-items: stretch; }
+.kbtn { font-family: inherit; border: 0; touch-action: none; color: #fff; font-size: 14px; text-shadow: 2px 2px 0 var(--ink); }
+.kbtn.brake { width: 30%; background: #3a3d48; box-shadow: inset -8px -8px 0 #2a2a3a, inset 8px 8px 0 #4a4c57; }
+.kbtn.turbo { width: 30%; background: #ff9c3b; box-shadow: inset -8px -8px 0 #b85a12, inset 8px 8px 0 #ffd2a0; }
+.kbtn.pressed { filter: brightness(1.3); }
+.kbtn.steer { position: absolute; top: 0; bottom: 0; width: 15%; background: var(--pc); box-shadow: inset -6px -6px 0 var(--pcd); font-size: 26px; }
+.kbtn.steer.left { left: 0; }
+.kbtn.steer.right { left: 15%; border-left: 4px solid var(--ink); }
+.drive-body.buttons .kbtn.brake { width: 30%; margin-left: 30%; }
+.wheel-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+#wheel { width: min(38vh, 34vw); height: min(38vh, 34vw); image-rendering: pixelated; }
+.wheel-tools { display: flex; gap: 4px; }
+#kartMotion { inset: 0; pointer-events: auto; background: rgba(27,27,38,0.9); }
+#kartDone { inset: 0; }
+.wheel-tools .btn.tiny { font-size: 7px; padding: 6px 7px; }
+
+.ko { inset: 0; }
 #scrDiff .chip { width: 22px; height: 22px; font-size: 11px; }
 
 .ko {

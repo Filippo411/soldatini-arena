@@ -12,7 +12,39 @@ Sala giochi "da salotto" per 1–4 giocatori, in pixel art 8-bit. Lo schermo gra
 - ✅ **Soldatini Arena**: sparatutto tutti contro tutti, descritto qui sotto.
 - ✅ **Holy Sheep**: cani pastore che radunano pecore (vedi sotto).
 - ✅ **Trova le differenze**: vedi sotto.
-- 🔜 **Pippo Kart**: kart su piste ispirate a Monza, Spa e Monaco, con il telefono come volante.
+- ✅ **Pippo Kart**: kart in finto 3D su piste ispirate a Monza, Spa e Monaco, con il telefono come volante (vedi sotto).
+
+---
+
+## Pippo Kart
+
+Gare di kart in finto 3D, nello stile dei kart del Super Nintendo. Ci sono sempre 4 kart in pista: i posti liberi li prendono i CPU. Con più giocatori lo schermo si divide in 2 o in 4.
+
+**Prima della gara**, sul telefono:
+- Ognuno sceglie il suo **pilota**. Toccandolo, il telefono dice il suo tormentone.
+- Il **capo** sceglie la **pista** e preme **VIA!**. Dopo 45 secondi si parte comunque.
+
+| Pilota | |
+|---|---|
+| **Il Generalissimo** | mascellone, medaglie e zero dubbi |
+| **El Comandante** | basco, barbone e sigaro |
+| **La Regina del Nilo** | copricapo dorato e sorpassi regali |
+| **La Televenditrice** | capelli cotonati, occhialoni e telefono in mano |
+
+| Pista | Cosa c'è |
+|---|---|
+| **Monza** | rettilinei lunghi, varianti, Lesmo, Ascari, la Parabolica e la vecchia sopraelevata nel parco |
+| **Spa** | La Source, il sali-e-scendi di Eau Rouge e Raidillon (l'orizzonte si alza e si abbassa), Kemmel, Blanchimont, Bus Stop |
+| **Monaco** | muretti a un palmo, il tornante, il tunnel buio, le chicane della piscina, gli yacht nel porto |
+
+**In gara**, il kart accelera da solo. Partenza con i 5 semafori rossi stile F1, poi 3 giri.
+- **Volante:** tieni il telefono in orizzontale e **inclinalo come un volante**.
+  - Il volante si centra da solo alla partenza. Se serve c'è il pulsante **CENTRA**, e **INVERTI** se sterza al contrario.
+  - Sull'iPhone bisogna toccare **ATTIVA VOLANTE** per dare il permesso al giroscopio.
+- **FRENO** (a sinistra) e **TURBO** (a destra). Ogni pilota ha 3 turbo per gara.
+- Se il volante non ti piace, il pulsante **TASTI** passa a due frecce per sterzare.
+- Fuori pista si rallenta e il telefono vibra. A Monaco i muretti ti fanno rimbalzare.
+- La gara finisce quando tutti sono arrivati, oppure 20 secondi dopo il primo arrivato.
 
 ---
 
@@ -158,6 +190,7 @@ public/
     │   ├── shooter/         SOLDATINI ARENA (config, mappa, sprite, bot, gioco, disegno)
     │   ├── sheep/           HOLY SHEEP (stessa struttura)
     │   ├── diff/            TROVA LE DIFFERENZE (scene.js è usato anche dai telefoni)
+    │   ├── kart/            PIPPO KART (piste, mondo, Mode 7, piloti, gara)
     │   │   └── index.js     collegamento del gioco alla sala
     │   └── upcoming.js      giochi "PROSSIMAMENTE" nel menu
     └── controller/controller.js   Schermate e comandi del telefono

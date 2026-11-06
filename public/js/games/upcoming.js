@@ -17,27 +17,5 @@
   }
   const K = '#1b1b26';
 
-  GAMES.register({
-    id: 'kart',
-    title: 'PIPPO KART',
-    desc: 'Gare di kart su piste ispirate a Monza, Spa e Monaco. Il telefono fa da volante!',
-    players: '1-4 (schermo diviso)',
-    available: false,
-    icon: art([
-      '........................',
-      '........................',
-      '.........kkkk...........',
-      '........kHHHHk..........',
-      '........kHHHHk..........',
-      '.........kssk...........',
-      '......kkkkkkkkkkkkkk....',
-      '.....krrrrrrrrrrrrrrk...',
-      '....krrwwrrrrrrrrrrrrk..',
-      '...kkrrrrrrrrrrrrrrrrkk.',
-      '..kgggkkkkkkkkkkkkkgggk.',
-      '..kgsgk...........kgsgk.',
-      '..kgggk...........kgggk.',
-      '...kkk.............kkk..',
-    ], { k: K, H: '#ffd23b', s: '#ffc690', r: '#ff3b3b', w: '#ffffff', g: '#3a3d48' }),
-  });
+  // (al momento nessun gioco in arrivo: tutti e quattro sono pronti!)
 })();

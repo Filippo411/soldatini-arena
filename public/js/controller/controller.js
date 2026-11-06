@@ -30,7 +30,7 @@
   // ------------------------------------------------------------------
   // Schermate
   // ------------------------------------------------------------------
-  const screens = ['scrJoin', 'scrLobby', 'scrPad', 'scrSheep', 'scrDiff', 'scrOver', 'scrMsg'];
+  const screens = ['scrJoin', 'scrLobby', 'scrPad', 'scrSheep', 'scrDiff', 'scrKart', 'scrOver', 'scrMsg'];
   let current = 'scrJoin';
   function show(id) {
     current = id;
@@ -128,7 +128,7 @@
   $('btnRetry').onclick = () => { if (net) net.send({ t: 'hello', name: myName }); };
 
   // Quale schermata del telefono usa ciascun gioco
-  const LAYOUT_SCREENS = { shooter: 'scrPad', sheep: 'scrSheep', diff: 'scrDiff' };
+  const LAYOUT_SCREENS = { shooter: 'scrPad', sheep: 'scrSheep', diff: 'scrDiff', kart: 'scrKart' };
   const GAME_SCREENS = new Set(Object.values(LAYOUT_SCREENS));
 
   function onYou(m) {
@@ -144,7 +144,7 @@
       const scr = LAYOUT_SCREENS[m.layout] || 'scrPad';
       $('padChip').textContent = m.slot + 1;
       $('padName').textContent = m.name;
-      for (const el of document.querySelectorAll('.sheep-chip, .diff-chip')) el.textContent = m.slot + 1;
+      for (const el of document.querySelectorAll('.sheep-chip, .diff-chip, .kart-chip')) el.textContent = m.slot + 1;
       for (const el of document.querySelectorAll('.sheep-name')) el.textContent = m.name;
       if (current !== scr) resetStick();
       show(scr);
@@ -224,6 +224,7 @@
   function onHud(h) {
     if (me && me.layout === 'sheep') return onSheepHud(h);
     if (me && me.layout === 'diff') return onDiffHud(h);
+    if (me && me.layout === 'kart') return onKartHud(h);
     [...ammoEl.children].forEach((el, i) => el.classList.toggle('empty', i >= h.ammo));
     ammoEl.classList.toggle('zero', h.ammo === 0);
     $('padKills').textContent = h.kills;
@@ -541,6 +542,183 @@
   });
 
   // ------------------------------------------------------------------
+  // PIPPO KART: scelta del pilota e VOLANTE (giroscopio) o tasti
+  // ------------------------------------------------------------------
+  let kartHud = null, kartStage = null;
+  const kart = {
+    mode: store.get('kartMode') || 'tilt',     // 'tilt' = volante, 'buttons' = tasti
+    invert: store.get('kartInvert') === '1',
+    neutral: null, angle: 0, steer: 0, brake: false, left: false, right: false,
+    motionOk: false, lastSend: 0, sentS: null, sentB: null,
+  };
+
+  // carte dei piloti
+  const charGrid = $('charGrid');
+  for (const c of KartChars.CHARS) {
+    const b = document.createElement('button');
+    b.className = 'char-card';
+    b.dataset.id = c.id;
+    const cv = document.createElement('canvas'); cv.width = 20; cv.height = 20;
+    KartChars.drawPortrait(cv.getContext('2d'), c.id, 0, 0, 1);
+    b.appendChild(cv);
+    const t = document.createElement('span'); t.textContent = c.name; b.appendChild(t);
+    b.onclick = () => {
+      if (b.classList.contains('taken')) { buzz(30); return; }
+      send({ t: 'kchar', id: c.id });
+      buzz(20);
+      say(c.line, c.voice);
+      askMotion();                 // il tocco serve anche a chiedere il permesso del giroscopio (iPhone)
+    };
+    charGrid.appendChild(b);
+  }
+
+  /** Tormentone del pilota, detto dal telefono */
+  function say(text, v) {
+    try {
+      if (!('speechSynthesis' in window)) return;
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = v.lang; u.pitch = v.pitch; u.rate = v.rate;
+      speechSynthesis.speak(u);
+    } catch (e) { /* niente voce */ }
+  }
+
+  function onKartHud(h) {
+    kartHud = h;
+    const sel = h.stage === 'select';
+    $('kartSelect').classList.toggle('hidden', !sel);
+    $('kartDrive').classList.toggle('hidden', sel);
+    if (sel) {
+      const taken = new Map(h.chars.map(([slot, id]) => [id, slot]));
+      for (const b of charGrid.children) {
+        const who = taken.get(b.dataset.id);
+        b.classList.toggle('mine', who === me.slot);
+        b.classList.toggle('taken', who !== undefined && who !== me.slot);
+        b.style.borderColor = who !== undefined && who !== me.slot ? ROOM_COLORS[who] : '';
+      }
+      const tr = $('trackRow');
+      tr.classList.toggle('hidden', !h.lead);
+      if (h.lead) {
+        tr.innerHTML = '';
+        for (const [id, name] of h.tracks) {
+          const b = document.createElement('button');
+          b.className = 'track-btn' + (id === h.track ? ' sel' : '');
+          b.textContent = name;
+          b.onclick = () => send({ t: 'ktrack', id });
+          tr.appendChild(b);
+        }
+      }
+      $('btnKartGo').classList.toggle('hidden', !h.lead);
+      $('kartSelNote').textContent = h.lead ? 'SEI IL CAPO: SCEGLI LA PISTA E PREMI VIA!' : 'PISTA: ' + (h.tracks.find((t) => t[0] === h.track) || ['', ''])[1] + ' - IL CAPO DA IL VIA';
+    } else {
+      if (kartStage === 'select') { kart.neutral = null; }   // si ricentra il volante all'inizio della gara
+      $('kartPos').textContent = (h.pos || 1) + '/' + (h.n || 4);
+      $('kartLap').textContent = 'GIRO ' + (h.lap || 1) + '/' + (h.laps || 3);
+      const tb = $('kartTurbos');
+      tb.innerHTML = '';
+      for (let i = 0; i < 3; i++) { const e = document.createElement('i'); if (i >= (h.turbos || 0)) e.className = 'used'; tb.appendChild(e); }
+      $('kartDone').classList.toggle('hidden', !h.finished);
+      if (h.finished) $('kartDoneText').textContent = h.finished === 1 ? 'VITTORIA!' : h.finished + ' POSTO';
+      applyKartMode();
+    }
+    kartStage = h.stage;
+  }
+  const ROOM_COLORS = ['#ff3b3b', '#2f8bff', '#ffd23b', '#3fe05a'];
+  $('btnKartGo').onclick = () => { askMotion(); send({ t: 'kgo' }); };
+
+  // --- giroscopio: angolo della gravità nel piano dello schermo ---
+  function askMotion() {
+    try {
+      if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission().then((r) => { if (r === 'granted') listenMotion(); }).catch(() => {});
+      } else listenMotion();
+    } catch (e) { /* niente */ }
+  }
+  let listening = false;
+  function listenMotion() {
+    if (listening) return;
+    listening = true;
+    addEventListener('devicemotion', (e) => {
+      const g = e.accelerationIncludingGravity;
+      if (!g || g.x == null) return;
+      if (Math.hypot(g.x, g.y) < 3) return;      // telefono quasi orizzontale: angolo instabile
+      kart.motionOk = true;
+      kart.angle = Math.atan2(g.y, g.x);
+      if (kart.neutral === null) kart.neutral = kart.angle;
+    });
+  }
+  // su Android il permesso non serve: ascoltiamo subito
+  if (!(window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function')) listenMotion();
+
+  function applyKartMode() {
+    const tilt = kart.mode === 'tilt';
+    $('btnLeft').classList.toggle('hidden', tilt);
+    $('btnRight').classList.toggle('hidden', tilt);
+    document.querySelector('.drive-body').classList.toggle('buttons', !tilt);
+    $('btnMode').textContent = tilt ? 'TASTI' : 'VOLANTE';
+    $('btnCenter').classList.toggle('hidden', !tilt);
+    $('btnInvert').classList.toggle('hidden', !tilt);
+    $('wheelHint').textContent = tilt ? (kart.motionOk ? 'INCLINA IL TELEFONO COME UN VOLANTE' : 'GIROSCOPIO NON TROVATO: USA I TASTI') : 'STERZA CON I TASTI A SINISTRA';
+    const needPerm = tilt && !kart.motionOk && window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function';
+    $('kartMotion').classList.toggle('hidden', !needPerm || current !== 'scrKart' || (kartHud && kartHud.stage === 'select'));
+  }
+  $('btnMotion').onclick = () => { askMotion(); setTimeout(applyKartMode, 600); };
+  $('btnCenter').onclick = () => { kart.neutral = kart.angle; buzz(20); };
+  $('btnMode').onclick = () => { kart.mode = kart.mode === 'tilt' ? 'buttons' : 'tilt'; store.set('kartMode', kart.mode); applyKartMode(); };
+  $('btnInvert').onclick = () => { kart.invert = !kart.invert; store.set('kartInvert', kart.invert ? '1' : '0'); buzz(20); };
+
+  function holdButton(el, onDown, onUp) {
+    el.addEventListener('pointerdown', (e) => { e.preventDefault(); el.setPointerCapture(e.pointerId); el.classList.add('pressed'); onDown(); });
+    const up = () => { el.classList.remove('pressed'); onUp && onUp(); };
+    el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('lostpointercapture', up);
+  }
+  holdButton($('btnBrake'), () => { kart.brake = true; buzz(10); }, () => { kart.brake = false; });
+  holdButton($('btnTurbo'), () => { send({ t: 'turbo' }); buzz([30, 20, 60]); });
+  holdButton($('btnLeft'), () => { kart.left = true; }, () => { kart.left = false; });
+  holdButton($('btnRight'), () => { kart.right = true; }, () => { kart.right = false; });
+
+  // disegno del volante + invio dei comandi ~30 volte al secondo
+  const wctx = $('wheel').getContext('2d');
+  function drawWheel(rot) {
+    const g = wctx;
+    g.clearRect(0, 0, 48, 48);
+    g.save(); g.translate(24, 24); g.rotate(rot);
+    const col = (me && me.color) || '#ff3b3b';
+    for (let a = 0; a < 64; a++) {      // corona
+      const t = a / 64 * Math.PI * 2;
+      for (let r = 17; r <= 21; r++) { g.fillStyle = r === 17 || r === 21 ? '#1b1b26' : (a > 28 && a < 36 ? col : '#3a3d48'); g.fillRect(Math.round(Math.cos(t) * r) - 1, Math.round(Math.sin(t) * r) - 1, 2, 2); }
+    }
+    g.fillStyle = '#1b1b26'; g.fillRect(-18, -3, 36, 6); g.fillRect(-3, 0, 6, 18);
+    g.fillStyle = '#6b6f7a'; g.fillRect(-17, -2, 34, 4); g.fillRect(-2, 0, 4, 17);
+    g.fillStyle = '#1b1b26'; g.fillRect(-6, -6, 12, 12); g.fillStyle = col; g.fillRect(-5, -5, 10, 10);
+    g.restore();
+  }
+  setInterval(() => {
+    if (current !== 'scrKart' || !kartHud || kartHud.stage !== 'race') return;
+    let s = 0;
+    if (kart.mode === 'tilt' && kart.motionOk) {
+      if (kart.neutral === null) kart.neutral = kart.angle;
+      let d = kart.angle - kart.neutral;
+      while (d > Math.PI) d -= Math.PI * 2;
+      while (d < -Math.PI) d += Math.PI * 2;
+      const deg = d * 180 / Math.PI;
+      s = Math.abs(deg) < 3 ? 0 : Math.max(-1, Math.min(1, deg / 35));   // 35 gradi = sterzata piena
+      if (kart.invert) s = -s;
+    } else {
+      s = (kart.right ? 1 : 0) - (kart.left ? 1 : 0);
+    }
+    kart.steer = s;
+    drawWheel(s * 0.9);
+    const now = performance.now();
+    const rs = Math.round(s * 20) / 20;
+    if (rs !== kart.sentS || kart.brake !== kart.sentB || now - kart.lastSend > 250) {
+      kart.sentS = rs; kart.sentB = kart.brake; kart.lastSend = now;
+      send({ t: 'kin', s: rs, b: kart.brake ? 1 : 0 });
+    }
+  }, 33);
+  drawWheel(0);
+
+  // ------------------------------------------------------------------
   // Tastiera (comodo per provare dal PC):
   //   WASD = muovi · SPAZIO = spara dove cammini · IJKL = mira, rilascia per sparare · E = powerup
   // ------------------------------------------------------------------
@@ -569,12 +747,27 @@
     if (!GAME_SCREENS.has(current) || e.repeat) return;
     const k = e.key.toLowerCase();
     const sheep = current === 'scrSheep';
+    if (current === 'scrKart') {
+      if (k === 'a' || k === 'arrowleft') kart.left = true;
+      if (k === 'd' || k === 'arrowright') kart.right = true;
+      if (k === 's' || k === 'arrowdown') kart.brake = true;
+      if (k === ' ') send({ t: 'turbo' });
+      if (kart.mode !== 'buttons') { kart.mode = 'buttons'; applyKartMode(); }
+      return;
+    }
     if (k === ' ') { send(sheep ? { t: 'bark' } : { t: 'shoot', a: null }); e.preventDefault(); return; }
     if (k === 'e') { send(sheep ? { t: 'dash' } : { t: 'pow', a: null, m: null }); return; }
     keys.add(k); keyUpdate();
   });
   addEventListener('keyup', (e) => {
     if (!GAME_SCREENS.has(current)) return;
+    if (current === 'scrKart') {
+      const k = e.key.toLowerCase();
+      if (k === 'a' || k === 'arrowleft') kart.left = false;
+      if (k === 'd' || k === 'arrowright') kart.right = false;
+      if (k === 's' || k === 'arrowdown') kart.brake = false;
+      return;
+    }
     keys.delete(e.key.toLowerCase()); keyUpdate();
   });
 

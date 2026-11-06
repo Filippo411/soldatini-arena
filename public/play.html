@@ -113,6 +113,45 @@
     <div class="flash-layer" id="diffFlash"></div>
   </section>
 
+  <!-- 3d. Controller di PIPPO KART: scelta pilota + volante -->
+  <section id="scrKart" class="screen hidden">
+    <!-- scelta del pilota (e della pista, per il capo) -->
+    <div class="kart-select" id="kartSelect">
+      <p class="note">SCEGLI IL TUO PILOTA</p>
+      <div class="char-grid" id="charGrid"></div>
+      <div class="track-row hidden" id="trackRow"></div>
+      <button class="btn big hidden" id="btnKartGo">VIA!</button>
+      <p class="note small" id="kartSelNote">IL CAPO SCEGLIE LA PISTA E DA IL VIA</p>
+    </div>
+    <!-- guida -->
+    <div class="kart-drive hidden" id="kartDrive">
+      <header class="pad-top">
+        <div class="chip kart-chip">1</div>
+        <div class="kart-pos" id="kartPos">1/4</div>
+        <div class="kart-lap" id="kartLap">GIRO 1/3</div>
+        <div class="kart-turbos" id="kartTurbos"></div>
+      </header>
+      <div class="drive-body">
+        <button class="kbtn brake" id="btnBrake"><span>FRENO</span></button>
+        <div class="wheel-wrap">
+          <canvas id="wheel" width="48" height="48"></canvas>
+          <div class="wheel-tools">
+            <button class="btn tiny" id="btnCenter">CENTRA</button>
+            <button class="btn tiny" id="btnMode">TASTI</button>
+            <button class="btn tiny" id="btnInvert">INVERTI</button>
+          </div>
+          <p class="note small" id="wheelHint">INCLINA IL TELEFONO COME UN VOLANTE</p>
+        </div>
+        <button class="kbtn turbo" id="btnTurbo"><span>TURBO</span></button>
+        <!-- modalità a tasti (se il giroscopio non c'è) -->
+        <button class="kbtn steer left hidden" id="btnLeft"><span>&lt;</span></button>
+        <button class="kbtn steer right hidden" id="btnRight"><span>&gt;</span></button>
+      </div>
+      <div class="ko hidden" id="kartMotion"><button class="btn big" id="btnMotion">ATTIVA VOLANTE</button><p class="note">serve il permesso per il giroscopio</p></div>
+      <div class="ko hidden" id="kartDone"><div class="ko-text" id="kartDoneText">1 POSTO!</div><div class="ko-sub">GUARDA LA TV</div></div>
+    </div>
+  </section>
+
   <!-- 4. Fine partita -->
   <section id="scrOver" class="screen hidden">
     <p class="note" id="overGame"></p>
@@ -146,6 +185,7 @@
   <script src="js/core/font.js"></script>
   <script src="js/common/logo.js"></script>
   <script src="js/games/diff/scene.js"></script>
+  <script src="js/games/kart/chars.js"></script>
   <script src="js/controller/controller.js"></script>
 </body>
 </html>

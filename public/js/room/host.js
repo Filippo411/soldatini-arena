@@ -35,6 +35,8 @@
   const room = {
     code: null,
     key: null,
+    /** questo slot è il "capo" della sala? */
+    isLead(slot) { const l = leadSlot(); return !!l && l.slot === slot; },
     /** messaggio a un telefono (es. la scena di Trova le differenze) */
     send(slot, d) { const s = slots[slot]; if (s && s.connected) toPhone(s.cid, d); },
     /** vibrazione sul telefono di uno slot */
@@ -490,6 +492,8 @@
       if (k === 'ArrowRight' || k === 'ArrowDown') selectGame(ids[(i + 1) % ids.length]);
       else if (k === 'ArrowLeft' || k === 'ArrowUp') selectGame(ids[(i - 1 + ids.length) % ids.length]);
       else if (k === 'Enter') startMatch();
+    } else if (phase === 'game' && session && session.key) {
+      session.key(k);
     } else if (phase === 'over' && performance.now() > overShownAt) {
       if (k === 'Enter') startMatch(playingId);
       else if (k === 'Escape' || k === 'Backspace') backToHub();
