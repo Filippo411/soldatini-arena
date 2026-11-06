@@ -1,7 +1,7 @@
 # Configurazione per Render: con questo file basta "Deploy to Render" / "New Blueprint"
 services:
   - type: web
-    name: soldatini-arena
+    name: pippo-game-room
     runtime: node
     plan: free
     region: frankfurt

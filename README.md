@@ -119,13 +119,13 @@ Comandi in stile Brawl Stars: un joystick per muoversi a sinistra, due "stick d'
 ## OPZIONE A — Online gratis con Render (consigliata)
 
 Ti serve circa un quarto d'ora la prima volta. Non devi installare niente sul computer.
-Alla fine avrai un indirizzo tipo `https://soldatini-arena.onrender.com` da aprire su qualsiasi PC o TV.
+Alla fine avrai un indirizzo tipo `https://pippo-game-room.onrender.com` da aprire su qualsiasi PC o TV.
 
 ### 1. Carica il codice su GitHub
 
 1. Vai su **https://github.com** e crea un account gratuito (*Sign up*).
 2. In alto a destra premi **+** → **New repository**.
-3. Come nome scrivi `soldatini-arena`, lascia **Public** e premi **Create repository**.
+3. Come nome scrivi `pippo-game-room`, lascia **Public** e premi **Create repository**.
 4. Nella pagina che si apre clicca sul link **uploading an existing file**.
 5. Sul tuo computer apri la cartella `soldatini` che hai estratto dallo zip. Seleziona **tutto il suo contenuto** (la cartella `public`, `server.js`, `package.json` e gli altri file) e trascinalo nella pagina di GitHub.
    > Deve essere il **contenuto** della cartella, non la cartella stessa: subito sotto il nome del repository devi vedere `server.js` e `public`.
@@ -135,16 +135,16 @@ Alla fine avrai un indirizzo tipo `https://soldatini-arena.onrender.com` da apri
 
 1. Vai su **https://render.com** e premi **Get Started**. Scegli **GitHub** per registrarti con lo stesso account.
 2. Premi **New +** → **Web Service**.
-3. Collega GitHub se te lo chiede, poi scegli il repository `soldatini-arena` e premi **Connect**.
+3. Collega GitHub se te lo chiede, poi scegli il repository `pippo-game-room` e premi **Connect**.
 4. Compila così:
-   - **Name:** `soldatini-arena`. Diventerà il tuo indirizzo; se è già preso, scegline un altro.
+   - **Name:** `pippo-game-room`. Diventerà il tuo indirizzo; se è già preso, scegline un altro.
    - **Region:** **Frankfurt (EU Central)**, la più vicina all'Italia.
    - **Language / Runtime:** **Node**
    - **Build Command:** lascialo vuoto, oppure scrivi `npm install`. Non ci sono librerie da installare.
    - **Start Command:** `node server.js`
    - **Instance Type:** **Free**
 5. Premi **Deploy Web Service** e aspetta 1–3 minuti, finché vedi **Live** in verde.
-6. In alto trovi il tuo indirizzo, per esempio `https://soldatini-arena.onrender.com`.
+6. In alto trovi il tuo indirizzo, per esempio `https://pippo-game-room.onrender.com`.
 
 ### 3. Giocate!
 

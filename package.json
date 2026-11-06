@@ -1,7 +1,7 @@
 {
-  "name": "soldatini-arena",
+  "name": "pippo-game-room",
   "version": "1.0.0",
-  "description": "Party game multiplayer locale: lo schermo grande mostra la partita, i telefoni fanno da joystick.",
+  "description": "Pippo Game Room: sala giochi 8-bit da salotto. La TV mostra il gioco, i telefoni fanno da controller.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

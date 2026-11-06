@@ -11,8 +11,9 @@
   // Identità persistente del telefono: serve per rientrare in partita
   // ------------------------------------------------------------------
   const store = {
-    get(k) { try { return localStorage.getItem('soldatini-' + k); } catch (e) { return null; } },
-    set(k, v) { try { localStorage.setItem('soldatini-' + k, v); } catch (e) { /* privato */ } },
+    // (legge anche le vecchie chiavi "soldatini-" per non perdere nome e identità già salvati)
+    get(k) { try { return localStorage.getItem('pgr-' + k) || localStorage.getItem('soldatini-' + k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem('pgr-' + k, v); } catch (e) { /* privato */ } },
   };
   let cid = store.get('cid');
   if (!cid) {
