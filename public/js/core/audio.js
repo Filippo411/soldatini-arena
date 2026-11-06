@@ -138,6 +138,13 @@
       lead: [72, 74, 76, 72, 76, 0, 79, 0, 77, 76, 74, 72, 74, 0, 67, 0, 72, 74, 76, 77, 79, 0, 79, 0, 81, 79, 77, 74, 72, 0, 0, 0],
       snare: [1, 3],
     },
+    // The Billionaire: tensione da quiz televisivo (tema originale, basso che pulsa)
+    quiz: {
+      bpm: 104, leadFrom: 16, leadWave: 'triangle',
+      bass: [38, 38, 0, 38, 38, 0, 38, 0, 36, 36, 0, 36, 36, 0, 36, 0],
+      lead: [0, 0, 0, 0, 0, 0, 0, 0, 62, 0, 0, 65, 0, 0, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 68, 0, 0, 64, 0, 0, 61, 0],
+      snare: [],
+    },
     // Pippo Kart: corsa
     race: {
       bpm: 176, leadFrom: 16, leadWave: 'square',

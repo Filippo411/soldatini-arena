@@ -512,11 +512,17 @@ var __values = (this && this.__values) || function(o) {
     'use strict';
     window.ROOM = {
         NAME: 'PIPPO GAME ROOM',
+        MAX_PLAYERS: 8,
+        DEFAULT_GAME_PLAYERS: 4,
         PLAYERS: [
             { name: 'ROSSO', color: '#ff3b3b', dark: '#a3172a', light: '#ff9c8a' },
             { name: 'BLU', color: '#2f8bff', dark: '#1a3fa8', light: '#9ccbff' },
             { name: 'GIALLO', color: '#ffd23b', dark: '#c27a12', light: '#fff1a0' },
             { name: 'VERDE', color: '#3fe05a', dark: '#16843a', light: '#a6ffad' },
+            { name: 'ARANCIO', color: '#ff8a2b', dark: '#a8470a', light: '#ffc08a' },
+            { name: 'VIOLA', color: '#b45cff', dark: '#6a2aa8', light: '#dcb0ff' },
+            { name: 'CIANO', color: '#2fe0d6', dark: '#157a76', light: '#a0fff9' },
+            { name: 'ROSA', color: '#ff6fb5', dark: '#a8306f', light: '#ffbcdc' },
         ],
         EVENING_POINTS: [3, 2, 1, 0],
     };
@@ -595,6 +601,11 @@ var __values = (this && this.__values) || function(o) {
         '_': '.....|.....|.....|.....|.....|.....|#####',
         '#': '.#.#.|#####|.#.#.|.#.#.|.#.#.|#####|.#.#.',
         '*': '.....|#.#.#|.###.|#####|.###.|#.#.#|.....',
+        '%': '##..#|##.#.|...#.|..#..|.#...|.#.##|#..##',
+        '€': '..###|.#...|####.|.#...|####.|.#...|..###',
+        '(': '...#.|..#..|.#...|.#...|.#...|..#..|...#.',
+        ')': '.#...|..#..|...#.|...#.|...#.|..#..|.#...',
+        '&': '.##..|#..#.|#.#..|.#...|#.#.#|#..#.|.##.#',
         x: '.....|.....|#...#|.#.#.|..#..|.#.#.|#...#',
         ' ': '.....|.....|.....|.....|.....|.....|.....',
     };
@@ -1039,6 +1050,12 @@ var __read = (this && this.__read) || function (o, n) {
             bass: [48, 0, 55, 0, 48, 0, 55, 0, 53, 0, 60, 0, 55, 0, 59, 0],
             lead: [72, 74, 76, 72, 76, 0, 79, 0, 77, 76, 74, 72, 74, 0, 67, 0, 72, 74, 76, 77, 79, 0, 79, 0, 81, 79, 77, 74, 72, 0, 0, 0],
             snare: [1, 3],
+        },
+        quiz: {
+            bpm: 104, leadFrom: 16, leadWave: 'triangle',
+            bass: [38, 38, 0, 38, 38, 0, 38, 0, 36, 36, 0, 36, 36, 0, 36, 0],
+            lead: [0, 0, 0, 0, 0, 0, 0, 0, 62, 0, 0, 65, 0, 0, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 68, 0, 0, 64, 0, 0, 61, 0],
+            snare: [],
         },
         race: {
             bpm: 176, leadFrom: 16, leadWave: 'square',
@@ -9051,6 +9068,1650 @@ var __values = (this && this.__values) || function(o) {
     });
 })();
 
+/* ---- js/games/billionaire/config.js ---- */
+"use strict";
+(function () {
+    'use strict';
+    window.BILL_CFG = {
+        W: 480, H: 270,
+        ASK_TIME: 60,
+        INTRO: 3,
+        LOCK_GRACE: 2,
+        SUSPENSE_ARENA: 1.4,
+        SUSPENSE_TEAM: 2.6,
+        REVEAL_ARENA: 5,
+        REVEAL_TEAM: 4.5,
+        FINISH_DELAY: 3500,
+        ARENA_LEVELS: [1, 1, 1, 2, 2, 2, 2, 3, 3, 3],
+        ARENA_MIN_PLAYERS: 2,
+        TEAM_LEVELS: [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3],
+        LADDER: [100, 200, 300, 500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 125000, 250000, 500000, 1000000],
+        SAFE: [4, 9],
+        LIFE: [
+            { id: 'fifty', name: '50/50', full: '50/50' },
+            { id: 'aud', name: 'PUBBLICO', full: 'AIUTO DEL PUBBLICO' },
+            { id: 'tel', name: 'AMICO', full: 'TELEFONATA A CASA' },
+            { id: 'swap', name: 'CAMBIA', full: 'CAMBIA DOMANDA' },
+        ],
+        FRIENDS: ['ZIO GIGI', 'NONNA ROSA', 'CUGINO TONI', 'IL PROF', 'ZIA PINA', 'PEPPINO', 'NONNO CARLO', 'LA MAMMA', 'IL VICINO', 'MARCELLO'],
+    };
+})();
+
+/* ---- js/games/billionaire/questions.js ---- */
+"use strict";
+(function () {
+    'use strict';
+    var BANK = {
+        1: [
+            ["Qual è la capitale d'Italia?", 'Roma', 'Milano', 'Napoli', 'Torino'],
+            ['Quanti giorni ha un anno bisestile?', '366', '365', '364', '367'],
+            ['Quale pianeta è chiamato il Pianeta Rosso?', 'Marte', 'Venere', 'Giove', 'Mercurio'],
+            ['Chi ha dipinto la Gioconda?', 'Leonardo da Vinci', 'Michelangelo', 'Raffaello', 'Caravaggio'],
+            ['Quanti lati ha un esagono?', '6', '5', '7', '8'],
+            ["Qual è l'oceano più grande del mondo?", 'Oceano Pacifico', 'Oceano Atlantico', 'Oceano Indiano', 'Oceano Artico'],
+            ['In quale città si trova la Torre Eiffel?', 'Parigi', 'Londra', 'Roma', 'Madrid'],
+            ['Quale metallo è liquido a temperatura ambiente?', 'Mercurio', 'Piombo', 'Ferro', 'Rame'],
+            ['Da quale frutto si ricava il vino?', 'Uva', 'Mela', 'Pera', 'Ciliegia'],
+            ['Quale mare bagna Venezia?', 'Mare Adriatico', 'Mar Tirreno', 'Mar Ionio', 'Mar Ligure'],
+            ['Chi ha scritto la Divina Commedia?', 'Dante Alighieri', 'Francesco Petrarca', 'Giovanni Boccaccio', 'Alessandro Manzoni'],
+            ["Qual è il fiume più lungo d'Italia?", 'Po', 'Tevere', 'Adige', 'Arno'],
+            ['Quale gas ci serve per respirare?', 'Ossigeno', 'Azoto', 'Elio', 'Idrogeno'],
+            ['Quante sono le note musicali?', '7', '5', '8', '12'],
+            ['Quale nazionale ha vinto più Mondiali di calcio?', 'Brasile', 'Germania', 'Italia', 'Argentina'],
+            ['Come si chiama il satellite naturale della Terra?', 'La Luna', 'Fobos', 'Titano', 'Europa'],
+            ['Qual è il pianeta più vicino al Sole?', 'Mercurio', 'Venere', 'Terra', 'Marte'],
+            ['Di quale paese è tipica la pizza?', 'Italia', 'Francia', 'Spagna', 'Grecia'],
+            ["Quanti minuti ci sono in un'ora e mezza?", '90', '80', '100', '75'],
+            ['Quale insetto produce il miele?', "L'ape", 'La vespa', 'La formica', 'La farfalla'],
+            ['Quale colore si ottiene mescolando blu e giallo?', 'Verde', 'Arancione', 'Viola', 'Marrone'],
+            ['Qual è la lingua più parlata in Brasile?', 'Portoghese', 'Spagnolo', 'Inglese', 'Francese'],
+            ['Come si chiama il vulcano vicino a Napoli?', 'Vesuvio', 'Etna', 'Stromboli', 'Vulcano'],
+            ['Chi ha scritto I Promessi Sposi?', 'Alessandro Manzoni', 'Giacomo Leopardi', 'Ugo Foscolo', 'Giovanni Verga'],
+            ['Quale strumento musicale ha 88 tasti?', 'Pianoforte', 'Chitarra', 'Violino', 'Flauto'],
+            ['Quanti giocatori scendono in campo per squadra nel calcio?', '11', '10', '9', '12'],
+            ['In quale città si trova il Colosseo?', 'Roma', 'Atene', 'Napoli', 'Firenze'],
+            ['Qual è il più grande animale terrestre?', "L'elefante", 'La giraffa', 'Il rinoceronte', "L'ippopotamo"],
+            ['Quale festa si celebra il 25 dicembre?', 'Natale', 'Pasqua', 'Ferragosto', 'Epifania'],
+            ["Qual è la formula chimica dell'acqua?", 'H2O', 'CO2', 'O2', 'NaCl'],
+            ['Qual è la capitale della Spagna?', 'Madrid', 'Barcellona', 'Siviglia', 'Valencia'],
+            ['Quale città è famosa per la Torre pendente?', 'Pisa', 'Siena', 'Bologna', 'Lucca'],
+            ['Quanti zeri ha il numero mille?', '3', '2', '4', '5'],
+            ['Quale organo pompa il sangue nel corpo?', 'Il cuore', 'Il fegato', 'Il polmone', 'Lo stomaco'],
+            ['Quale dolce è fatto con savoiardi, mascarpone e caffè?', 'Tiramisù', 'Panna cotta', 'Cassata', 'Zabaione'],
+            ['In quale sport si usano una racchetta e una pallina gialla?', 'Tennis', 'Golf', 'Rugby', 'Hockey'],
+            ["Quale stagione viene dopo l'inverno?", 'Primavera', 'Estate', 'Autunno', 'Inverno'],
+            ['Chi è Pinocchio nella favola di Collodi?', 'Un burattino di legno', 'Un gatto', 'Un orsetto', 'Un principe'],
+            ['Quale città italiana è famosa per canali e gondole?', 'Venezia', 'Verona', 'Padova', 'Trieste'],
+            ['Quanti anni ci sono in un secolo?', '100', '10', '1000', '50'],
+            ['Qual è la montagna più alta del mondo?', 'Everest', 'K2', 'Kilimangiaro', 'Monte Bianco'],
+            ['Quale animale è il simbolo del WWF?', 'Il panda', 'La tigre', "L'elefante", 'La balena'],
+            ['Quale dolce tipico si mangia a Pasqua?', 'La colomba', 'Il panettone', 'Il pandoro', 'Il torrone'],
+            ['In quale paese si trova il Taj Mahal?', 'India', 'Egitto', 'Cina', 'Turchia'],
+            ['Qual è la moneta ufficiale del Regno Unito?', 'Sterlina', 'Euro', 'Dollaro', 'Corona'],
+            ['Quali sono i colori della bandiera italiana?', 'Verde, bianco e rosso', 'Blu, bianco e rosso', 'Verde, giallo e rosso', 'Bianco, rosso e blu'],
+            ['Quale personaggio delle fiabe arabe esce da una lampada?', 'Il genio', 'Il mago', 'Il drago', 'Il gigante'],
+            ['Quanti sono i cerchi del simbolo olimpico?', '5', '4', '6', '7'],
+        ],
+        2: [
+            ['Chi ha creato il commissario Montalbano?', 'Andrea Camilleri', 'Leonardo Sciascia', 'Umberto Eco', 'Italo Calvino'],
+            ['In che anno Neil Armstrong mise piede sulla Luna?', '1969', '1965', '1972', '1959'],
+            ["Qual è la capitale dell'Australia?", 'Canberra', 'Sydney', 'Melbourne', 'Perth'],
+            ['Chi dipinse La notte stellata?', 'Vincent van Gogh', 'Claude Monet', 'Paul Gauguin', 'Pablo Picasso'],
+            ['Quale elemento chimico ha simbolo Au?', 'Oro', 'Argento', 'Alluminio', 'Rame'],
+            ['Quale fiume attraversa Firenze?', 'Arno', 'Tevere', 'Po', 'Adige'],
+            ['Chi ha scritto Il nome della rosa?', 'Umberto Eco', 'Italo Calvino', 'Primo Levi', 'Alberto Moravia'],
+            ['In che anno è caduto il Muro di Berlino?', '1989', '1991', '1985', '1979'],
+            ['Quale pianeta è famoso per i suoi anelli visibili?', 'Saturno', 'Marte', 'Mercurio', 'Venere'],
+            ['Quanti sono i pianeti del Sistema Solare?', '8', '9', '7', '10'],
+            ['Chi fu il primo imperatore di Roma?', 'Augusto', 'Giulio Cesare', 'Nerone', 'Traiano'],
+            ["Quale paese dell'Unione Europea ha più abitanti?", 'Germania', 'Francia', 'Italia', 'Spagna'],
+            ['Chi ha composto La Traviata?', 'Giuseppe Verdi', 'Giacomo Puccini', 'Gioachino Rossini', 'Vincenzo Bellini'],
+            ['Qual è la capitale del Canada?', 'Ottawa', 'Toronto', 'Vancouver', 'Montreal'],
+            ["Qual è l'osso più lungo del corpo umano?", 'Femore', 'Tibia', 'Omero', 'Perone'],
+            ["Quale mare separa l'Italia dai Balcani?", 'Mare Adriatico', 'Mar Tirreno', 'Mar Egeo', 'Mar Nero'],
+            ['Quale italiano vinse il Nobel per la fisica nel 1909 con la radio?', 'Guglielmo Marconi', 'Enrico Fermi', 'Alessandro Volta', 'Galileo Galilei'],
+            ['Quale scienziato formulò la teoria della relatività?', 'Albert Einstein', 'Isaac Newton', 'Galileo Galilei', 'Niels Bohr'],
+            ['In quale sport si disputa il torneo di Wimbledon?', 'Tennis', 'Golf', 'Cricket', 'Rugby'],
+            ['Qual è la capitale della Turchia?', 'Ankara', 'Istanbul', 'Smirne', 'Antalya'],
+            ['Chi guidò la spedizione che nel 1492 raggiunse le Americhe?', 'Cristoforo Colombo', 'Amerigo Vespucci', 'Marco Polo', 'Vasco da Gama'],
+            ["Quale organo produce l'insulina?", 'Pancreas', 'Fegato', 'Rene', 'Milza'],
+            ['In quale regione italiana si trova Matera?', 'Basilicata', 'Puglia', 'Calabria', 'Campania'],
+            ['Quale città ospitò le Olimpiadi invernali del 2006?', 'Torino', 'Milano', "Cortina d'Ampezzo", 'Bormio'],
+            ["Qual è la lingua ufficiale dell'Argentina?", 'Spagnolo', 'Portoghese', 'Italiano', 'Inglese'],
+            ["Chi scrisse la poesia L'infinito?", 'Giacomo Leopardi', 'Giosuè Carducci', 'Giovanni Pascoli', 'Eugenio Montale'],
+            ['Quale squadra di calcio è detta la Vecchia Signora?', 'Juventus', 'Milan', 'Inter', 'Roma'],
+            ['Qual è il più grande deserto caldo del mondo?', 'Sahara', 'Gobi', 'Kalahari', 'Atacama'],
+            ['Chi dipinse gli affreschi della volta della Cappella Sistina?', 'Michelangelo', 'Raffaello', 'Botticelli', 'Tiziano'],
+            ['Quante corde ha una chitarra classica?', '6', '4', '5', '8'],
+            ['Quale unità di misura si usa per la frequenza?', 'Hertz', 'Watt', 'Joule', 'Volt'],
+            ["Secondo la tradizione, chi è l'autore dell'Odissea?", 'Omero', 'Virgilio', 'Esiodo', 'Sofocle'],
+            ['Qual è la capitale della Svizzera?', 'Berna', 'Zurigo', 'Ginevra', 'Basilea'],
+            ['Qual è la più grande isola italiana?', 'Sicilia', 'Sardegna', 'Elba', 'Capri'],
+            ['Qual è il simbolo chimico del sodio?', 'Na', 'So', 'Sd', 'S'],
+            ['Quale festa si celebra in Italia il 2 giugno?', 'Festa della Repubblica', 'Festa della Liberazione', 'Ferragosto', 'Festa dei Lavoratori'],
+            ['Quanto fa 12 per 12?', '144', '124', '164', '122'],
+            ['In quale città si trova il Duomo con la Madonnina?', 'Milano', 'Torino', 'Bologna', 'Genova'],
+            ['Quale pittore spagnolo dipinse Guernica?', 'Pablo Picasso', 'Salvador Dali', 'Joan Miro', 'Francisco Goya'],
+            ["Qual è la capitale dell'Egitto?", 'Il Cairo', 'Alessandria', 'Luxor', 'Giza'],
+            ['Quale vitamina produce il corpo con la luce del sole?', 'Vitamina D', 'Vitamina C', 'Vitamina A', 'Vitamina B12'],
+            ['Chi fu il primo presidente degli Stati Uniti?', 'George Washington', 'Abraham Lincoln', 'Thomas Jefferson', 'John Adams'],
+            ["Qual è il gas più abbondante nell'atmosfera terrestre?", 'Azoto', 'Ossigeno', 'Anidride carbonica', 'Argon'],
+            ['Chi ha scritto la tragedia Romeo e Giulietta?', 'William Shakespeare', 'Charles Dickens', 'Christopher Marlowe', 'Oscar Wilde'],
+            ['Qual è la valuta del Giappone?', 'Yen', 'Won', 'Yuan', 'Rupia'],
+            ['In quale città si trova la Sagrada Familia?', 'Barcellona', 'Madrid', 'Siviglia', 'Valencia'],
+            ["Quanti anni durò la Guerra dei Cent'Anni?", '116', '100', '99', '150'],
+            ['Quale città è soprannominata la Città Eterna?', 'Roma', 'Atene', 'Gerusalemme', 'Istanbul'],
+        ],
+        3: [
+            ['Qual è la capitale del Kazakistan?', 'Astana', 'Almaty', 'Tashkent', 'Bishkek'],
+            ['In che anno scoppiò la Rivoluzione francese?', '1789', '1799', '1776', '1815'],
+            ['Chi scrisse Guerra e pace?', 'Lev Tolstoj', 'Fedor Dostoevskij', 'Anton Cechov', 'Nikolaj Gogol'],
+            ['Chi formulò le tre leggi del moto dei pianeti?', 'Johannes Kepler', 'Niccolò Copernico', 'Galileo Galilei', 'Isaac Newton'],
+            ['Quale elemento chimico ha numero atomico 1?', 'Idrogeno', 'Elio', 'Litio', 'Ossigeno'],
+            ["Quale città fu capitale del Regno d'Italia dal 1865 al 1871?", 'Firenze', 'Torino', 'Roma', 'Milano'],
+            ['Chi dipinse La Primavera, conservata agli Uffizi?', 'Sandro Botticelli', 'Tiziano', 'Giotto', 'Beato Angelico'],
+            ['Quale trattato del 1957 istituì la Comunità Economica Europea?', 'Trattato di Roma', 'Trattato di Maastricht', 'Trattato di Lisbona', 'Trattato di Parigi'],
+            ['Qual è la capitale del Perù?', 'Lima', 'Quito', 'Bogotà', 'Santiago'],
+            ['Chi compose Le quattro stagioni?', 'Antonio Vivaldi', 'Johann Sebastian Bach', 'Claudio Monteverdi', 'Arcangelo Corelli'],
+            ['Qual è lo stato più piccolo del mondo?', 'Città del Vaticano', 'Principato di Monaco', 'San Marino', 'Liechtenstein'],
+            ["In che anno l'Italia vinse il suo quarto Mondiale di calcio?", '2006', '1994', '1998', '2010'],
+            ['Quale fisico scoprì la radioattività nel 1896?', 'Henri Becquerel', 'Marie Curie', 'Ernest Rutherford', 'Wilhelm Roentgen'],
+            ['Chi scrisse Il Principe?', 'Niccolò Machiavelli', 'Francesco Guicciardini', 'Dante Alighieri', 'Tommaso Moro'],
+            ["Qual è il fiume più lungo d'Europa?", 'Volga', 'Danubio', 'Reno', 'Dnepr'],
+            ['Quale filosofo scrisse la Critica della ragion pura?', 'Immanuel Kant', 'Georg Hegel', 'Friedrich Nietzsche', 'Arthur Schopenhauer'],
+            ['In quale città si trova il Museo del Prado?', 'Madrid', 'Barcellona', 'Lisbona', 'Parigi'],
+            ['Quale battaglia del 1815 segnò la sconfitta finale di Napoleone?', 'Waterloo', 'Austerlitz', 'Lipsia', 'Borodino'],
+            ["Qual è l'elemento più abbondante nella crosta terrestre?", 'Ossigeno', 'Silicio', 'Ferro', 'Alluminio'],
+            ['Quale italiano vinse il Nobel per la letteratura nel 1997?', 'Dario Fo', 'Eugenio Montale', 'Umberto Eco', 'Luigi Pirandello'],
+            ['Chi dipinse Il giuramento degli Orazi?', 'Jacques-Louis David', 'Eugène Delacroix', 'Francisco Goya', 'Gustave Courbet'],
+            ['Attorno a quale pianeta orbita Ganimede, la luna più grande?', 'Giove', 'Saturno', 'Nettuno', 'Urano'],
+            ["Chi fu l'ultimo re d'Italia?", 'Umberto II', 'Vittorio Emanuele III', 'Vittorio Emanuele II', 'Carlo Alberto'],
+            ["In quale anno l'eruzione del Vesuvio distrusse Pompei?", '79 d.C.', '69 d.C.', '89 d.C.', '79 a.C.'],
+            ['Qual è la capitale della Nuova Zelanda?', 'Wellington', 'Auckland', 'Christchurch', 'Dunedin'],
+            ['Chi fu il primo uomo nello spazio?', 'Jurij Gagarin', 'Neil Armstrong', 'Buzz Aldrin', 'Alan Shepard'],
+            ["Qual è la formula chimica dell'anidride carbonica?", 'CO2', 'CO', 'C2O', 'O3'],
+            ['Chi ha scritto Cent\'anni di solitudine?', 'Gabriel Garcia Marquez', 'Jorge Luis Borges', 'Pablo Neruda', 'Mario Vargas Llosa'],
+            ['In quale città nacque Wolfgang Amadeus Mozart?', 'Salisburgo', 'Vienna', 'Praga', 'Monaco di Baviera'],
+            ['Quale elemento chimico ha simbolo Fe?', 'Ferro', 'Fluoro', 'Fosforo', 'Francio'],
+            ['Chi diresse il film La dolce vita?', 'Federico Fellini', 'Luchino Visconti', 'Vittorio De Sica', 'Roberto Rossellini'],
+            ['Quale città è la sede ufficiale del Parlamento europeo?', 'Strasburgo', 'Bruxelles', 'Lussemburgo', 'Parigi'],
+            ['Chi scrisse il Canzoniere?', 'Francesco Petrarca', 'Giovanni Boccaccio', 'Dante Alighieri', 'Torquato Tasso'],
+            ["Qual è la capitale dell'Islanda?", 'Reykjavik', 'Oslo', 'Helsinki', 'Tallinn'],
+            ['Quale imperatore romano ricostruì il Pantheon come lo vediamo oggi?', 'Adriano', 'Augusto', 'Traiano', 'Nerone'],
+            ['Quante ossa ha il corpo umano adulto?', '206', '186', '226', '256'],
+            ['Chi scoprì la penicillina?', 'Alexander Fleming', 'Louis Pasteur', 'Robert Koch', 'Edward Jenner'],
+            ["Quale gruppo ha pubblicato l'album The Dark Side of the Moon?", 'Pink Floyd', 'Led Zeppelin', 'The Beatles', 'Queen'],
+            ['Qual è il punto più profondo degli oceani?', 'Fossa delle Marianne', 'Fossa di Portorico', 'Fossa delle Tonga', 'Fossa di Giava'],
+            ['Come si chiamava Istanbul prima di Costantinopoli?', 'Bisanzio', 'Troia', 'Antiochia', 'Smirne'],
+            ['Chi era la dea greca della saggezza?', 'Atena', 'Era', 'Afrodite', 'Artemide'],
+            ['Quale unità misura la resistenza elettrica?', 'Ohm', 'Volt', 'Ampere', 'Farad'],
+            ['In quale continente si trova il lago Vittoria?', 'Africa', 'Asia', 'America', 'Oceania'],
+            ["Chi scolpì il David di marmo dell'Accademia di Firenze?", 'Michelangelo', 'Donatello', 'Bernini', 'Canova'],
+            ['Quale matematico greco è famoso per il teorema sui triangoli rettangoli?', 'Pitagora', 'Euclide', 'Archimede', 'Talete'],
+            ['Chi ha scritto il romanzo 1984?', 'George Orwell', 'Aldous Huxley', 'Ray Bradbury', 'Franz Kafka'],
+            ['Quale città sorge sulle rive della Moldava?', 'Praga', 'Budapest', 'Vienna', 'Varsavia'],
+            ['Quanto vale all\'incirca la velocità della luce nel vuoto?', '300.000 km/s', '150.000 km/s', '30.000 km/s', '3.000.000 km/s'],
+        ],
+    };
+    var seen = { 1: new Set(), 2: new Set(), 3: new Set() };
+    function shuffle(a) {
+        for (var i = a.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var t = a[i];
+            a[i] = a[j];
+            a[j] = t;
+        }
+        return a;
+    }
+    function draw(level, exclude) {
+        var pool = BANK[level];
+        var free = function (i) { return !(exclude && exclude.has(level + ':' + i)); };
+        var cand = [];
+        for (var i_1 = 0; i_1 < pool.length; i_1++)
+            if (!seen[level].has(i_1) && free(i_1))
+                cand.push(i_1);
+        if (!cand.length) {
+            seen[level].clear();
+            for (var i_2 = 0; i_2 < pool.length; i_2++)
+                if (free(i_2))
+                    cand.push(i_2);
+        }
+        var i = cand[Math.floor(Math.random() * cand.length)];
+        seen[level].add(i);
+        var row = pool[i];
+        var right = row[1];
+        var opts = shuffle(row.slice(1));
+        return { id: level + ':' + i, lvl: level, q: row[0], o: opts, c: opts.indexOf(right) };
+    }
+    window.BillQuestions = { BANK: BANK, draw: draw };
+})();
+
+/* ---- js/games/billionaire/game.js ---- */
+"use strict";
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+(function () {
+    'use strict';
+    var C = BILL_CFG;
+    var LIFE_IDS = C.LIFE.map(function (l) { return l.id; });
+    var rnd = function (n) { return Math.floor(Math.random() * n); };
+    var pick = function (a) { return a[rnd(a.length)]; };
+    function shuffle(a) {
+        for (var i = a.length - 1; i > 0; i--) {
+            var j = rnd(i + 1);
+            var t = a[i];
+            a[i] = a[j];
+            a[j] = t;
+        }
+        return a;
+    }
+    var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+    function applyFifty(q, elim) {
+        var wrongAlive = shuffle([0, 1, 2, 3].filter(function (i) { return i !== q.c && !elim.includes(i); }));
+        return elim.concat(wrongAlive.slice(0, Math.max(0, wrongAlive.length - 1)));
+    }
+    function applyAudience(q, elim) {
+        var alive = [0, 1, 2, 3].filter(function (i) { return !elim.includes(i); });
+        var wrongAlive = alive.filter(function (i) { return i !== q.c; });
+        var pRight = [0, 0.95, 0.85, 0.7][q.lvl];
+        var leader = (!wrongAlive.length || Math.random() < pRight) ? q.c : pick(wrongAlive);
+        var lead = leader === q.c ? [0, 55 + rnd(31), 45 + rnd(31), 35 + rnd(26)][q.lvl] : 35 + rnd(16);
+        if (alive.length === 2)
+            lead = Math.min(92, lead + 15);
+        var p = [0, 0, 0, 0];
+        p[leader] = lead;
+        var others = alive.filter(function (i) { return i !== leader; });
+        var w = others.map(function () { return 0.3 + Math.random(); });
+        var sum = w.reduce(function (a, b) { return a + b; }, 0) || 1;
+        others.forEach(function (o, k) { p[o] = Math.round((100 - lead) * w[k] / sum); });
+        p[leader] += 100 - p.reduce(function (a, b) { return a + b; }, 0);
+        return p;
+    }
+    var SURE = ['SONO SICURO: È LA', 'NON HO DUBBI, È LA', 'LO SO, È LA'];
+    var MID = ['PROPENDO PER LA', 'SECONDO ME È LA', 'MI SEMBRA LA'];
+    var LOW = ['NON SONO SICURO... FORSE LA', 'AZZARDO LA', 'TIRO A INDOVINARE: LA'];
+    function applyFriend(q, elim) {
+        var wrongAlive = [0, 1, 2, 3].filter(function (i) { return i !== q.c && !elim.includes(i); });
+        var right = !wrongAlive.length || Math.random() < [0, 0.92, 0.78, 0.6][q.lvl];
+        var choice = right ? q.c : pick(wrongAlive);
+        var conf = right ? [null, [0.7, 0.25], [0.45, 0.4], [0.25, 0.4]][q.lvl] : [0.25, 0.45];
+        var r = Math.random();
+        var phrase = pick(r < conf[0] ? SURE : r < conf[0] + conf[1] ? MID : LOW);
+        return { who: pick(C.FRIENDS), pick: choice, txt: phrase + ' ' + 'ABCD'[choice] + '!' };
+    }
+    var BillGame = (function () {
+        function BillGame(humans, emit) {
+            this.emit = emit || (function () { });
+            this.players = humans.map(function (h) { return ({
+                slot: h.slot, name: h.name, connected: true,
+                score: 0, timeSum: 0, ans: -1, ansT: 0, res: -1, life: { fifty: true, aud: true, tel: true, swap: true }, s: null,
+                vote: -1, voteT: 0, right: 0,
+            }); });
+            this.pmap = new Map(this.players.map(function (p) { return [p.slot, p]; }));
+            this.stage = 'menu';
+            this.mode = null;
+            this.menuSel = 'team';
+            this.notice = '';
+            this.noticeT = 0;
+            this.t = 0;
+            this.clock = 0;
+            this.idx = -1;
+            this.total = 0;
+            this.queue = [];
+            this.used = new Set();
+            this.q = null;
+            this.toasts = [];
+            this.parts = [];
+            this.lastTick = -1;
+            this.ts = null;
+            this.teamLife = { fifty: true, aud: true, tel: true, swap: true };
+            this.lifeVotes = { fifty: new Set(), aud: new Set(), tel: new Set(), swap: new Set() };
+            this.lockAt = null;
+            this.final = -1;
+            this.won = 0;
+            this.safe = 0;
+            this.result = null;
+        }
+        Object.defineProperty(BillGame.prototype, "ladder", {
+            get: function () { return C.LADDER; },
+            enumerable: false,
+            configurable: true
+        });
+        BillGame.prototype.connected = function () { return this.players.filter(function (p) { return p.connected; }); };
+        BillGame.prototype.player = function (slot) { return this.pmap.get(slot) || null; };
+        BillGame.prototype.cur = function () { return this.mode === 'team' && this.ts ? this.ts.q : this.q; };
+        BillGame.prototype.dirty = function () { this.emit('dirty'); };
+        BillGame.prototype.timeLeft = function () { return Math.max(0, C.ASK_TIME - this.t); };
+        BillGame.prototype.need = function () { return Math.floor(Math.max(1, this.connected().length) / 2) + 1; };
+        BillGame.fmt = function (n) { return fmt(n); };
+        BillGame.prototype.toast = function (text, slot) {
+            this.toasts.push({ text: text, slot: slot, t: 0 });
+            if (this.toasts.length > 4)
+                this.toasts.shift();
+        };
+        BillGame.prototype.pickMode = function (mode) {
+            var _this = this;
+            if (this.stage !== 'menu' || (mode !== 'arena' && mode !== 'team'))
+                return;
+            this.menuSel = mode;
+            if (mode === 'arena' && this.connected().length < C.ARENA_MIN_PLAYERS) {
+                this.notice = 'LA SFIDA VUOLE ALMENO ' + C.ARENA_MIN_PLAYERS + ' GIOCATORI!';
+                this.noticeT = 3;
+                this.emit('sfx', 'empty');
+                this.dirty();
+                return;
+            }
+            this.mode = mode;
+            var levels = mode === 'arena' ? C.ARENA_LEVELS : C.TEAM_LEVELS;
+            this.total = levels.length;
+            this.queue = levels.map(function (lv) { var q = BillQuestions.draw(lv, _this.used); _this.used.add(q.id); return q; });
+            this.stage = 'intro';
+            this.t = 0;
+            this.emit('sfx', 'bill_intro');
+            this.dirty();
+        };
+        BillGame.prototype.key = function (k) {
+            if (this.stage !== 'menu')
+                return;
+            if (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'ArrowUp' || k === 'ArrowDown') {
+                this.menuSel = this.menuSel === 'arena' ? 'team' : 'arena';
+                this.emit('sfx', 'tick');
+                this.dirty();
+            }
+            else if (k === 'Enter')
+                this.pickMode(this.menuSel);
+        };
+        BillGame.prototype.nextQuestion = function () {
+            var e_1, _a, e_2, _b;
+            this.idx++;
+            this.q = this.queue[this.idx];
+            this.stage = 'ask';
+            this.t = 0;
+            this.lastTick = -1;
+            this.lockAt = null;
+            this.final = -1;
+            this.result = null;
+            this.parts.length = 0;
+            try {
+                for (var _c = __values(this.players), _d = _c.next(); !_d.done; _d = _c.next()) {
+                    var p = _d.value;
+                    p.ans = -1;
+                    p.ansT = 0;
+                    p.res = -1;
+                    p.vote = -1;
+                    p.voteT = 0;
+                    p.s = { q: this.q, elim: [], info: null, swapped: false };
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            this.ts = { q: this.q, elim: [], info: null, swapped: false };
+            try {
+                for (var LIFE_IDS_1 = __values(LIFE_IDS), LIFE_IDS_1_1 = LIFE_IDS_1.next(); !LIFE_IDS_1_1.done; LIFE_IDS_1_1 = LIFE_IDS_1.next()) {
+                    var id = LIFE_IDS_1_1.value;
+                    this.lifeVotes[id].clear();
+                }
+            }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            finally {
+                try {
+                    if (LIFE_IDS_1_1 && !LIFE_IDS_1_1.done && (_b = LIFE_IDS_1.return)) _b.call(LIFE_IDS_1);
+                }
+                finally { if (e_2) throw e_2.error; }
+            }
+            this.emit('music', true);
+            this.emit('sfx', 'bill_q');
+            this.dirty();
+        };
+        BillGame.prototype.answer = function (slot, o) {
+            var p = this.pmap.get(slot);
+            if (!p || this.stage !== 'ask' || !Number.isInteger(o) || o < 0 || o > 3)
+                return;
+            if (this.mode === 'arena') {
+                if (p.ans >= 0 || p.s.elim.includes(o))
+                    return;
+                p.ans = o;
+                p.ansT = this.t;
+                this.emit('sfx', 'bill_select');
+            }
+            else {
+                if (this.ts.elim.includes(o) || p.vote === o)
+                    return;
+                p.vote = o;
+                p.voteT = this.t;
+                this.emit('sfx', 'bill_select');
+            }
+            this.dirty();
+        };
+        BillGame.prototype.useLife = function (slot, k) {
+            var p = this.pmap.get(slot);
+            var id = LIFE_IDS[k];
+            if (!p || !id || this.stage !== 'ask')
+                return;
+            var label = C.LIFE[k].name;
+            if (this.mode === 'arena') {
+                if (p.ans >= 0 || !p.life[id])
+                    return;
+                p.life[id] = false;
+                this.applyLife(p.s, id);
+                this.toast(p.name + ' USA ' + label, slot);
+                this.emit('sfx', 'bill_life');
+            }
+            else {
+                if (!this.teamLife[id])
+                    return;
+                var set = this.lifeVotes[id];
+                if (set.has(slot))
+                    set.delete(slot);
+                else
+                    set.add(slot);
+                this.emit('sfx', 'tick');
+                this.checkLifeVotes();
+            }
+            this.dirty();
+        };
+        BillGame.prototype.checkLifeVotes = function () {
+            var e_3, _a, e_4, _b;
+            var _this = this;
+            if (this.mode !== 'team' || this.stage !== 'ask')
+                return;
+            for (var k = 0; k < LIFE_IDS.length; k++) {
+                var id = LIFE_IDS[k];
+                if (!this.teamLife[id])
+                    continue;
+                var votes = __spreadArray([], __read(this.lifeVotes[id]), false).filter(function (s) { return _this.pmap.get(s) && _this.pmap.get(s).connected; }).length;
+                if (votes < this.need())
+                    continue;
+                this.teamLife[id] = false;
+                this.lifeVotes[id].clear();
+                this.applyLife(this.ts, id);
+                if (id === 'swap') {
+                    this.q = this.ts.q;
+                    this.t = 0;
+                    this.lockAt = null;
+                    this.lastTick = -1;
+                    try {
+                        for (var _c = (e_3 = void 0, __values(this.players)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                            var p = _d.value;
+                            p.vote = -1;
+                            p.voteT = 0;
+                        }
+                    }
+                    catch (e_3_1) { e_3 = { error: e_3_1 }; }
+                    finally {
+                        try {
+                            if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+                        }
+                        finally { if (e_3) throw e_3.error; }
+                    }
+                    this.emit('music', true);
+                }
+                else {
+                    try {
+                        for (var _e = (e_4 = void 0, __values(this.players)), _f = _e.next(); !_f.done; _f = _e.next()) {
+                            var p = _f.value;
+                            if (this.ts.elim.includes(p.vote))
+                                p.vote = -1;
+                        }
+                    }
+                    catch (e_4_1) { e_4 = { error: e_4_1 }; }
+                    finally {
+                        try {
+                            if (_f && !_f.done && (_b = _e.return)) _b.call(_e);
+                        }
+                        finally { if (e_4) throw e_4.error; }
+                    }
+                }
+                this.toast('LA SQUADRA USA ' + C.LIFE[k].name, -1);
+                this.emit('sfx', 'bill_life');
+            }
+        };
+        BillGame.prototype.applyLife = function (s, id) {
+            if (id === 'fifty')
+                s.elim = applyFifty(s.q, s.elim);
+            else if (id === 'aud')
+                s.info = { t: 'aud', p: applyAudience(s.q, s.elim) };
+            else if (id === 'tel')
+                s.info = Object.assign({ t: 'tel' }, applyFriend(s.q, s.elim));
+            else if (id === 'swap') {
+                var nq = BillQuestions.draw(s.q.lvl, this.used);
+                this.used.add(nq.id);
+                s.q = nq;
+                s.elim = [];
+                s.info = null;
+                s.swapped = true;
+            }
+        };
+        BillGame.prototype.setConnected = function (slot, on) {
+            var e_5, _a;
+            var p = this.pmap.get(slot);
+            if (!p)
+                return;
+            p.connected = on;
+            if (!on)
+                try {
+                    for (var LIFE_IDS_2 = __values(LIFE_IDS), LIFE_IDS_2_1 = LIFE_IDS_2.next(); !LIFE_IDS_2_1.done; LIFE_IDS_2_1 = LIFE_IDS_2.next()) {
+                        var id = LIFE_IDS_2_1.value;
+                        this.lifeVotes[id].delete(slot);
+                    }
+                }
+                catch (e_5_1) { e_5 = { error: e_5_1 }; }
+                finally {
+                    try {
+                        if (LIFE_IDS_2_1 && !LIFE_IDS_2_1.done && (_a = LIFE_IDS_2.return)) _a.call(LIFE_IDS_2);
+                    }
+                    finally { if (e_5) throw e_5.error; }
+                }
+            else
+                this.dirty();
+            this.checkLifeVotes();
+        };
+        BillGame.prototype.update = function (dt) {
+            var e_6, _a, e_7, _b;
+            this.clock += dt;
+            this.t += dt;
+            if (this.noticeT > 0) {
+                this.noticeT -= dt;
+                if (this.noticeT <= 0) {
+                    this.notice = '';
+                    this.dirty();
+                }
+            }
+            try {
+                for (var _c = __values(this.toasts), _d = _c.next(); !_d.done; _d = _c.next()) {
+                    var x = _d.value;
+                    x.t += dt;
+                }
+            }
+            catch (e_6_1) { e_6 = { error: e_6_1 }; }
+            finally {
+                try {
+                    if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+                }
+                finally { if (e_6) throw e_6.error; }
+            }
+            this.toasts = this.toasts.filter(function (x) { return x.t < 4.5; });
+            try {
+                for (var _e = __values(this.parts), _f = _e.next(); !_f.done; _f = _e.next()) {
+                    var p = _f.value;
+                    p.x += p.vx * dt;
+                    p.y += p.vy * dt;
+                    p.vy += 90 * dt;
+                    p.life -= dt;
+                }
+            }
+            catch (e_7_1) { e_7 = { error: e_7_1 }; }
+            finally {
+                try {
+                    if (_f && !_f.done && (_b = _e.return)) _b.call(_e);
+                }
+                finally { if (e_7) throw e_7.error; }
+            }
+            this.parts = this.parts.filter(function (p) { return p.life > 0; });
+            switch (this.stage) {
+                case 'intro':
+                    if (this.t >= C.INTRO)
+                        this.nextQuestion();
+                    break;
+                case 'ask':
+                    this.updateAsk();
+                    break;
+                case 'suspense':
+                    if (this.t >= (this.mode === 'arena' ? C.SUSPENSE_ARENA : C.SUSPENSE_TEAM))
+                        this.reveal();
+                    break;
+                case 'reveal':
+                    if (this.t >= (this.mode === 'arena' ? C.REVEAL_ARENA : C.REVEAL_TEAM))
+                        this.afterReveal();
+                    break;
+                default:
+            }
+        };
+        BillGame.prototype.updateAsk = function () {
+            var conn = this.connected();
+            if (this.mode === 'arena') {
+                if (conn.length && conn.every(function (p) { return p.ans >= 0; }))
+                    return this.toSuspense();
+            }
+            else {
+                var all = conn.length > 0 && conn.every(function (p) { return p.vote >= 0; });
+                if (all && this.lockAt === null) {
+                    this.lockAt = this.t + C.LOCK_GRACE;
+                    this.dirty();
+                }
+                else if (!all && this.lockAt !== null) {
+                    this.lockAt = null;
+                    this.dirty();
+                }
+                if (this.lockAt !== null && this.t >= this.lockAt)
+                    return this.toSuspense();
+            }
+            var left = this.timeLeft();
+            if (left <= 10 && Math.ceil(left) !== this.lastTick) {
+                this.lastTick = Math.ceil(left);
+                if (left > 0)
+                    this.emit('sfx', 'bill_tick');
+            }
+            if (left <= 0)
+                this.toSuspense();
+        };
+        BillGame.prototype.toSuspense = function () {
+            this.stage = 'suspense';
+            this.t = 0;
+            if (this.mode === 'team')
+                this.final = this.majority();
+            this.emit('music', false);
+            this.emit('sfx', 'bill_lock');
+            this.dirty();
+        };
+        BillGame.prototype.majority = function () {
+            var e_8, _a;
+            var count = [0, 0, 0, 0], first = [Infinity, Infinity, Infinity, Infinity];
+            try {
+                for (var _b = __values(this.players), _c = _b.next(); !_c.done; _c = _b.next()) {
+                    var p = _c.value;
+                    if (p.vote < 0)
+                        continue;
+                    count[p.vote]++;
+                    first[p.vote] = Math.min(first[p.vote], p.voteT);
+                }
+            }
+            catch (e_8_1) { e_8 = { error: e_8_1 }; }
+            finally {
+                try {
+                    if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                }
+                finally { if (e_8) throw e_8.error; }
+            }
+            var best = -1;
+            for (var i = 0; i < 4; i++) {
+                if (!count[i])
+                    continue;
+                if (best < 0 || count[i] > count[best] || (count[i] === count[best] && first[i] < first[best]))
+                    best = i;
+            }
+            return best;
+        };
+        BillGame.prototype.reveal = function () {
+            var e_9, _a, e_10, _b;
+            this.stage = 'reveal';
+            this.t = 0;
+            if (this.mode === 'arena') {
+                var anyRight = false;
+                try {
+                    for (var _c = __values(this.players), _d = _c.next(); !_d.done; _d = _c.next()) {
+                        var p = _d.value;
+                        if (p.ans < 0) {
+                            p.res = -1;
+                            this.emit('buzz', { slot: p.slot, pattern: [200] });
+                            continue;
+                        }
+                        if (p.ans === p.s.q.c) {
+                            p.res = 1;
+                            p.score++;
+                            p.timeSum += p.ansT;
+                            anyRight = true;
+                            this.emit('buzz', { slot: p.slot, pattern: [60, 40, 60] });
+                        }
+                        else {
+                            p.res = 0;
+                            this.emit('buzz', { slot: p.slot, pattern: [300] });
+                        }
+                    }
+                }
+                catch (e_9_1) { e_9 = { error: e_9_1 }; }
+                finally {
+                    try {
+                        if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+                    }
+                    finally { if (e_9) throw e_9.error; }
+                }
+                this.emit('sfx', anyRight ? 'bill_correct' : 'bill_wrong');
+                if (anyRight)
+                    this.confetti(24);
+            }
+            else {
+                var ok = this.final === this.q.c;
+                try {
+                    for (var _e = __values(this.players), _f = _e.next(); !_f.done; _f = _e.next()) {
+                        var p = _f.value;
+                        if (p.vote === this.q.c)
+                            p.right++;
+                        p.res = p.vote < 0 ? -1 : p.vote === this.q.c ? 1 : 0;
+                        this.emit('buzz', { slot: p.slot, pattern: ok ? [60, 40, 60] : [300] });
+                    }
+                }
+                catch (e_10_1) { e_10 = { error: e_10_1 }; }
+                finally {
+                    try {
+                        if (_f && !_f.done && (_b = _e.return)) _b.call(_e);
+                    }
+                    finally { if (e_10) throw e_10.error; }
+                }
+                if (ok) {
+                    this.won = C.LADDER[this.idx];
+                    if (C.SAFE.includes(this.idx))
+                        this.safe = this.won;
+                }
+                this.result = { ok: ok, prize: ok ? this.won : this.safe, million: ok && this.idx === this.total - 1 };
+                this.emit('sfx', ok ? (this.result.million ? 'bill_million' : 'bill_correct') : 'bill_wrong');
+                if (ok)
+                    this.confetti(this.result.million ? 90 : 36);
+            }
+            this.dirty();
+        };
+        BillGame.prototype.afterReveal = function () {
+            if (this.mode === 'arena') {
+                if (this.idx + 1 >= this.total)
+                    this.finish();
+                else
+                    this.nextQuestion();
+            }
+            else if (this.result.ok && this.idx + 1 < this.total)
+                this.nextQuestion();
+            else
+                this.finish();
+        };
+        BillGame.prototype.finish = function () {
+            var _this = this;
+            this.stage = 'end';
+            this.t = 0;
+            this.emit('music', false);
+            var ranking, opts;
+            if (this.mode === 'arena') {
+                var sorted = this.players.slice().sort(function (a, b) { return b.score - a.score || a.timeSum - b.timeSum || a.slot - b.slot; });
+                ranking = sorted.map(function (p) { return ({ slot: p.slot, name: p.name, bot: false, detail: p.score + '/' + _this.total + ' GIUSTE' }); });
+                opts = { delay: C.FINISH_DELAY };
+            }
+            else {
+                var prize = this.result ? this.result.prize : this.safe;
+                var million = !!(this.result && this.result.million);
+                var sorted = this.players.slice().sort(function (a, b) { return b.right - a.right || a.slot - b.slot; });
+                ranking = sorted.map(function (p) { return ({ slot: p.slot, name: p.name, bot: false, detail: p.right + ' VOTI GIUSTI' }); });
+                var pts = million ? 3 : prize >= C.LADDER[9] ? 2 : prize >= C.LADDER[4] ? 1 : 0;
+                this.prizeFinal = prize;
+                opts = {
+                    delay: C.FINISH_DELAY, teamPts: pts,
+                    title: million ? 'MILIONARI!' : prize > 0 ? 'BRAVI!' : 'GAME OVER',
+                    sub: million ? 'AVETE VINTO € 1.000.000!' : prize > 0 ? 'PORTATE A CASA € ' + fmt(prize) : 'NIENTE VINCITA... RIPROVATE!',
+                };
+            }
+            this.emit('sfx', 'bill_end');
+            this.emit('over', { ranking: ranking, opts: opts });
+            this.dirty();
+        };
+        BillGame.prototype.confetti = function (n) {
+            var cols = ['#ffd23b', '#ff3b3b', '#2f8bff', '#3fe05a', '#ff6fb5', '#ffffff'];
+            for (var i = 0; i < n; i++) {
+                this.parts.push({
+                    x: C.W * (0.2 + Math.random() * 0.6), y: C.H * 0.35,
+                    vx: (Math.random() - 0.5) * 180, vy: -60 - Math.random() * 120,
+                    life: 1.6 + Math.random() * 1.4, c: pick(cols),
+                });
+            }
+        };
+        BillGame.prototype.hud = function (slot, lead) {
+            var _this = this;
+            var p = this.pmap.get(slot);
+            if (!p)
+                return null;
+            var conn = this.connected().length;
+            var h = { g: 'bill', st: this.stage, md: this.mode, lead: lead ? 1 : 0, np: conn, ca: conn >= C.ARENA_MIN_PLAYERS ? 1 : 0, sel: this.menuSel, nt: this.notice };
+            if (this.stage === 'menu' || this.stage === 'intro')
+                return h;
+            var arena = this.mode === 'arena';
+            var s = arena ? p.s : this.ts;
+            h.n = this.idx + 1;
+            h.tot = this.total;
+            if (this.stage === 'ask')
+                h.tm = Math.ceil(this.timeLeft());
+            h.o = s.q.o;
+            h.el = s.elim;
+            h.info = s.info;
+            if (s.swapped) {
+                h.sw = 1;
+                h.q = s.q.q;
+            }
+            h.pick = arena ? p.ans : p.vote;
+            if (arena) {
+                h.lf = LIFE_IDS.map(function (id) { return (p.life[id] ? 1 : 0); });
+                h.sc = p.score;
+                h.rk = 1 + this.players.filter(function (x) { return x.score > p.score; }).length;
+            }
+            else {
+                h.lf = LIFE_IDS.map(function (id) { return (_this.teamLife[id] ? 1 : 0); });
+                h.lv = LIFE_IDS.map(function (id) { return _this.lifeVotes[id].size; });
+                h.mine = LIFE_IDS.map(function (id) { return (_this.lifeVotes[id].has(slot) ? 1 : 0); });
+                h.need = this.need();
+                h.lk = this.lockAt !== null ? 1 : 0;
+                h.won = this.won;
+                h.safe = this.safe;
+                h.val = C.LADDER[this.idx];
+            }
+            if (this.stage === 'reveal' || this.stage === 'end') {
+                h.cor = s.q.c;
+                h.res = p.res;
+                if (!arena && this.result) {
+                    h.ok = this.result.ok ? 1 : 0;
+                    h.prz = this.result.prize;
+                }
+            }
+            return h;
+        };
+        return BillGame;
+    }());
+    window.BillGame = BillGame;
+})();
+
+/* ---- js/games/billionaire/render.js ---- */
+"use strict";
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+(function () {
+    'use strict';
+    var C = BILL_CFG;
+    var W = C.W, H = C.H;
+    var T = function (ctx, text, x, y, o) { return PixelFont.draw(ctx, text, x, y, o); };
+    var COL = {
+        bgTop: '#0a0f33', bgBot: '#1d2f86',
+        panel: '#101a52', panelHi: '#1c2d86', line: '#5b7be0',
+        gold: '#ffd23b', goldDark: '#c27a12', orange: '#ff9c3b',
+        ok: '#2fbf4b', okDark: '#1f7a30', bad: '#d6283f', badDark: '#7a1426',
+        ink: '#0a0c1e', dim: '#6b7399', white: '#ffffff',
+        life: ['#ffd23b', '#2f8bff', '#3fe05a', '#ff6fb5'],
+    };
+    var LETTERS = ['A', 'B', 'C', 'D'];
+    var fmt = function (n) { return BillGame.fmt(n); };
+    function panel(ctx, x, y, w, h, fill, border) {
+        ctx.fillStyle = border;
+        ctx.fillRect(x + 2, y, w - 4, h);
+        ctx.fillRect(x, y + 2, w, h - 4);
+        ctx.fillRect(x + 1, y + 1, 1, 1);
+        ctx.fillRect(x + w - 2, y + 1, 1, 1);
+        ctx.fillRect(x + 1, y + h - 2, 1, 1);
+        ctx.fillRect(x + w - 2, y + h - 2, 1, 1);
+        ctx.fillStyle = fill;
+        ctx.fillRect(x + 2, y + 1, w - 4, h - 2);
+        ctx.fillRect(x + 1, y + 2, w - 2, h - 4);
+    }
+    function tick(ctx, x, y, col) {
+        ctx.fillStyle = col;
+        [[6, 0], [5, 1], [0, 2], [4, 2], [1, 3], [3, 3], [2, 4]].forEach(function (p) { return ctx.fillRect(x + p[0], y + p[1], 1, 1); });
+    }
+    function cross(ctx, x, y, col) {
+        ctx.fillStyle = col;
+        [[0, 0], [4, 0], [1, 1], [3, 1], [2, 2], [1, 3], [3, 3], [0, 4], [4, 4]].forEach(function (p) { return ctx.fillRect(x + p[0], y + p[1], 1, 1); });
+    }
+    function wrap(text, maxChars) {
+        var e_1, _a;
+        var words = PixelFont.norm(text).split(' ');
+        var lines = [];
+        var cur = '';
+        try {
+            for (var words_1 = __values(words), words_1_1 = words_1.next(); !words_1_1.done; words_1_1 = words_1.next()) {
+                var w = words_1_1.value;
+                if (!cur)
+                    cur = w;
+                else if ((cur + ' ' + w).length <= maxChars)
+                    cur += ' ' + w;
+                else {
+                    lines.push(cur);
+                    cur = w;
+                }
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (words_1_1 && !words_1_1.done && (_a = words_1.return)) _a.call(words_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        if (cur)
+            lines.push(cur);
+        return lines;
+    }
+    function textBlock(ctx, text, x, y, w, h, o) {
+        var e_2, _a;
+        o = o || {};
+        var chars = Math.floor(w / 6);
+        var lines = wrap(text, chars);
+        var lh = (o.scale || 1) * 10;
+        var ty = y + Math.round((h - lines.length * lh + (lh - 7 * (o.scale || 1))) / 2);
+        try {
+            for (var lines_1 = __values(lines), lines_1_1 = lines_1.next(); !lines_1_1.done; lines_1_1 = lines_1.next()) {
+                var l = lines_1_1.value;
+                T(ctx, l, o.align === 'left' ? x : x + w / 2, ty, { color: o.color || COL.white, scale: o.scale || 1, align: o.align === 'left' ? 'left' : 'center', outline: o.outline === undefined ? null : o.outline });
+                ty += lh;
+            }
+        }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        finally {
+            try {
+                if (lines_1_1 && !lines_1_1.done && (_a = lines_1.return)) _a.call(lines_1);
+            }
+            finally { if (e_2) throw e_2.error; }
+        }
+    }
+    var STARS = [];
+    for (var i = 0; i < 46; i++)
+        STARS.push({ x: (i * 97 + 31) % W, y: (i * 53 + 17) % H, p: (i * 0.37) % 6.28, s: i % 5 === 0 ? 2 : 1 });
+    function background(ctx, g) {
+        var e_3, _a;
+        var bands = 18;
+        var _loop_1 = function (i) {
+            var t = i / (bands - 1);
+            var a = [0x0a, 0x0f, 0x33], b = [0x1d, 0x2f, 0x86];
+            var c = a.map(function (v, k) { return Math.round(v + (b[k] - v) * t); });
+            ctx.fillStyle = 'rgb(' + c.join(',') + ')';
+            ctx.fillRect(0, Math.floor(i * H / bands), W, Math.ceil(H / bands) + 1);
+        };
+        for (var i = 0; i < bands; i++) {
+            _loop_1(i);
+        }
+        try {
+            for (var STARS_1 = __values(STARS), STARS_1_1 = STARS_1.next(); !STARS_1_1.done; STARS_1_1 = STARS_1.next()) {
+                var s = STARS_1_1.value;
+                var tw = Math.sin(g.clock * 2 + s.p);
+                if (tw < -0.2)
+                    continue;
+                ctx.fillStyle = tw > 0.6 ? '#ffffff' : '#7f93ff';
+                ctx.fillRect(s.x, s.y, s.s, s.s);
+            }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (STARS_1_1 && !STARS_1_1.done && (_a = STARS_1.return)) _a.call(STARS_1);
+            }
+            finally { if (e_3) throw e_3.error; }
+        }
+    }
+    function header(ctx, g) {
+        T(ctx, 'THE BILLIONAIRE', 8, 5, { color: COL.gold, scale: 1, outline: COL.ink, shadow: '#a3172a' });
+        var label = g.mode === 'arena' ? 'SFIDA' : 'SQUADRA';
+        var sub = g.mode === 'arena'
+            ? label + ' - ROUND ' + (g.idx + 1) + '/' + g.total
+            : label + ' - DOMANDA ' + (g.idx + 1) + '/' + g.total + ' PER € ' + fmt(C.LADDER[g.idx]);
+        T(ctx, sub, 128, 6, { color: '#cfd8ff', outline: null });
+        if (g.stage === 'ask') {
+            var left = g.timeLeft();
+            var col = left <= 10 ? '#ff5a5a' : left <= 25 ? COL.orange : '#7dff8a';
+            T(ctx, String(Math.ceil(left)), W - 8, 4, { color: col, scale: 2, align: 'right', outline: COL.ink });
+            ctx.fillStyle = COL.ink;
+            ctx.fillRect(8, 19, W - 16, 3);
+            ctx.fillStyle = col;
+            ctx.fillRect(8, 19, Math.round((W - 16) * left / C.ASK_TIME), 3);
+        }
+        else {
+            ctx.fillStyle = COL.ink;
+            ctx.fillRect(8, 19, W - 16, 3);
+        }
+    }
+    function question(ctx, g, q) {
+        panel(ctx, 8, 26, 344, 56, COL.panel, COL.line);
+        textBlock(ctx, q.q, 14, 26, 332, 56, { color: COL.white });
+        for (var i = 0; i < 3; i++) {
+            ctx.fillStyle = i < q.lvl ? COL.gold : '#2a3a8a';
+            ctx.fillRect(14 + i * 6, 30, 4, 4);
+        }
+    }
+    var OX = [8, 184], OY = [90, 124], OW = 168, OH = 30;
+    function options(ctx, g, q) {
+        var s = g.mode === 'team' ? g.ts : null;
+        var elim = s ? s.elim : [];
+        var reveal = g.stage === 'reveal' || g.stage === 'end';
+        var _loop_2 = function (i) {
+            var x = OX[i % 2], y = OY[(i / 2) | 0];
+            var gone = elim.includes(i);
+            var fill = COL.panel, border = COL.line, txt = COL.white, badge = COL.orange;
+            var isRight = reveal && i === q.c;
+            var isFinal = g.mode === 'team' && i === g.final && (g.stage === 'suspense' || reveal);
+            if (isRight) {
+                fill = COL.ok;
+                border = '#a6ffad';
+                badge = '#a6ffad';
+            }
+            else if (isFinal && reveal) {
+                fill = COL.bad;
+                border = '#ff9c8a';
+                badge = '#ff9c8a';
+            }
+            else if (isFinal) {
+                fill = COL.goldDark;
+                border = COL.gold;
+                if ((g.clock * 6 | 0) % 2)
+                    fill = '#e39b1b';
+            }
+            if (isRight && reveal && (g.clock * 5 | 0) % 2)
+                fill = '#3fe05a';
+            if (gone) {
+                fill = '#0c1236';
+                border = '#2a3470';
+                txt = '#2a3470';
+                badge = '#2a3470';
+            }
+            panel(ctx, x, y, OW, OH, fill, border);
+            ctx.fillStyle = badge;
+            ctx.fillRect(x + 4, y + 5, 16, 20);
+            T(ctx, LETTERS[i], x + 12, y + 12, { color: gone ? '#0c1236' : COL.ink, align: 'center', outline: null });
+            if (!gone)
+                textBlock(ctx, q.o[i], x + 23, y, OW - 27, OH, { color: txt, align: 'left' });
+            else
+                T(ctx, '- - -', x + 24, y + 12, { color: '#2a3470', outline: null });
+            if (s && s.info && s.info.t === 'aud' && !gone) {
+                var pc = s.info.p[i];
+                ctx.fillStyle = '#0a0c1e';
+                ctx.fillRect(x + 4, y + OH - 5, OW - 8, 3);
+                ctx.fillStyle = COL.gold;
+                ctx.fillRect(x + 4, y + OH - 5, Math.round((OW - 8) * pc / 100), 3);
+                T(ctx, pc + '%', x + OW - 5, y + 3, { color: COL.gold, align: 'right', outline: COL.ink });
+            }
+            var chips = g.players.filter(function (p) { return (g.mode === 'team' ? p.vote === i : reveal && p.ans === i && p.res !== -1); });
+            chips.forEach(function (p, k) {
+                ctx.fillStyle = COL.ink;
+                ctx.fillRect(x + OW - 8 - k * 8, y + OH - 11, 7, 7);
+                ctx.fillStyle = PLAYER_COLOR(p.slot);
+                ctx.fillRect(x + OW - 7 - k * 8, y + OH - 10, 5, 5);
+            });
+        };
+        for (var i = 0; i < 4; i++) {
+            _loop_2(i);
+        }
+    }
+    var PLAYER_COLOR = function (slot) { return ROOM.PLAYERS[slot].color; };
+    function scoreboard(ctx, g) {
+        panel(ctx, 356, 26, 116, 238, COL.panel, COL.line);
+        T(ctx, 'CLASSIFICA', 414, 31, { color: COL.gold, align: 'center', outline: null });
+        var rows = g.players.slice().sort(function (a, b) { return b.score - a.score || a.slot - b.slot; });
+        var reveal = g.stage === 'reveal' || g.stage === 'end';
+        rows.forEach(function (p, i) {
+            var y = 43 + i * 27;
+            var col = PLAYER_COLOR(p.slot);
+            ctx.fillStyle = '#0a0f33';
+            ctx.fillRect(360, y, 108, 25);
+            ctx.fillStyle = p.connected ? col : '#444a66';
+            ctx.fillRect(360, y, 4, 25);
+            T(ctx, p.name, 368, y + 3, { color: p.connected ? col : '#6b7399', outline: null });
+            T(ctx, String(p.score), 465, y + 3, { color: COL.white, align: 'right', scale: 2, outline: null });
+            ['fifty', 'aud', 'tel', 'swap'].forEach(function (id, k) {
+                ctx.fillStyle = p.life[id] ? COL.life[k] : '#2a3470';
+                ctx.fillRect(368 + k * 10, y + 16, 8, 5);
+            });
+            if (g.stage === 'ask' || g.stage === 'suspense') {
+                if (p.ans >= 0)
+                    tick(ctx, 428, y + 17, '#7dff8a');
+            }
+            else if (reveal) {
+                if (p.res === 1)
+                    tick(ctx, 428, y + 17, '#7dff8a');
+                else if (p.res === 0)
+                    cross(ctx, 429, y + 17, '#ff5a5a');
+                else
+                    T(ctx, '-', 430, y + 15, { color: '#6b7399', outline: null });
+            }
+        });
+    }
+    function arenaLower(ctx, g, q) {
+        var conn = g.connected();
+        var done = conn.filter(function (p) { return p.ans >= 0; }).length;
+        if (g.stage === 'ask' || g.stage === 'suspense') {
+            panel(ctx, 8, 158, 344, 22, COL.panel, COL.line);
+            T(ctx, 'RISPOSTE: ' + done + '/' + conn.length, 14, 165, { color: '#cfd8ff', outline: null });
+            T(ctx, 'ANCHE GLI AIUTI SI USANO DAL TELEFONO', 346, 165, { color: COL.dim, align: 'right', outline: null });
+        }
+        else {
+            var right = g.players.filter(function (p) { return p.res === 1; }).length;
+            panel(ctx, 8, 158, 344, 22, COL.okDark, '#a6ffad');
+            T(ctx, 'ESATTO: ' + LETTERS[q.c] + ' - ' + right + ' SU ' + g.players.length + ' CI HANNO PRESO!', 180, 165, { color: COL.white, align: 'center', outline: null });
+        }
+        g.toasts.forEach(function (x, i) {
+            var y = 188 + i * 12;
+            var a = Math.min(1, (4.5 - x.t) * 2);
+            ctx.globalAlpha = a;
+            var col = x.slot >= 0 ? PLAYER_COLOR(x.slot) : COL.gold;
+            ctx.fillStyle = col;
+            ctx.fillRect(10, y, 5, 8);
+            T(ctx, x.text, 20, y + 1, { color: COL.white, outline: null });
+            ctx.globalAlpha = 1;
+        });
+        for (var i = 0; i < g.total; i++) {
+            ctx.fillStyle = i < g.idx ? COL.gold : i === g.idx ? '#ffffff' : '#2a3470';
+            ctx.fillRect(10 + i * 18, 250, 14, 8);
+        }
+        T(ctx, g.idx + 1 === g.total ? 'ULTIMA DOMANDA!' : 'ROUND', 194, 251, { color: COL.dim, outline: null });
+    }
+    function ladder(ctx, g) {
+        panel(ctx, 356, 26, 116, 238, COL.panel, COL.line);
+        var shown = g.stage === 'reveal' || g.stage === 'end';
+        var passed = g.result && g.result.ok ? g.idx : g.idx - 1;
+        for (var i = 0; i < 15; i++) {
+            var y = 30 + (14 - i) * 14;
+            var isCur = i === g.idx;
+            var safe = C.SAFE.includes(i);
+            if (isCur) {
+                ctx.fillStyle = shown && g.result && !g.result.ok ? COL.bad : COL.gold;
+                ctx.fillRect(360, y - 2, 108, 12);
+            }
+            var col = isCur ? COL.ink : i <= passed ? '#7dff8a' : safe ? COL.orange : '#cfd8ff';
+            T(ctx, String(i + 1), 372, y, { color: col, align: 'right', outline: null });
+            T(ctx, fmt(C.LADDER[i]), 466, y, { color: col, align: 'right', outline: null });
+            if (safe) {
+                ctx.fillStyle = isCur ? COL.ink : COL.orange;
+                ctx.fillRect(375, y + 2, 3, 3);
+            }
+        }
+    }
+    function teamLower(ctx, g, q) {
+        var s = g.ts;
+        var msg = '', mc = '#cfd8ff', bg = COL.panel, bd = COL.line;
+        var reveal = g.stage === 'reveal' || g.stage === 'end';
+        if (reveal && g.result) {
+            if (g.result.million) {
+                msg = 'AVETE VINTO UN MILIONE!!!';
+                bg = COL.okDark;
+                bd = '#a6ffad';
+                mc = COL.gold;
+            }
+            else if (g.result.ok) {
+                msg = 'ESATTO! AVETE € ' + fmt(g.won);
+                bg = COL.okDark;
+                bd = '#a6ffad';
+                mc = COL.white;
+            }
+            else {
+                msg = (g.final < 0 ? 'TEMPO SCADUTO! ' : 'SBAGLIATO! ') + 'PORTATE A CASA € ' + fmt(g.safe);
+                bg = COL.badDark;
+                bd = '#ff9c8a';
+                mc = COL.white;
+            }
+        }
+        else if (g.stage === 'suspense') {
+            msg = 'RISPOSTA BLOCCATA... SARÀ LA ' + LETTERS[g.final < 0 ? 0 : g.final] + '?';
+            if (g.final < 0)
+                msg = 'NESSUN VOTO...';
+            mc = COL.gold;
+        }
+        else if (s.info && s.info.t === 'tel') {
+            msg = s.info.who + ': ' + s.info.txt;
+            mc = '#9bffb0';
+        }
+        else if (g.lockAt !== null) {
+            msg = 'TUTTI HANNO VOTATO! ULTIMI SECONDI PER CAMBIARE IDEA...';
+            mc = COL.gold;
+        }
+        else
+            msg = 'VOTATE DAL TELEFONO: RISPONDE LA MAGGIORANZA';
+        panel(ctx, 8, 158, 344, 22, bg, bd);
+        textBlock(ctx, msg, 12, 158, 336, 22, { color: mc });
+        C.LIFE.forEach(function (l, k) {
+            var x = 8 + k * 87, y = 186, w = 82;
+            var avail = g.teamLife[l.id];
+            var votes = g.lifeVotes[l.id].size;
+            panel(ctx, x, y, w, 30, avail ? COL.panel : '#0c1236', avail ? COL.life[k] : '#2a3470');
+            T(ctx, l.name, x + w / 2, y + 6, { color: avail ? COL.life[k] : '#2a3470', align: 'center', outline: null });
+            if (avail) {
+                T(ctx, 'VOTI ' + votes + '/' + g.need(), x + w / 2, y + 18, { color: votes ? COL.white : COL.dim, align: 'center', outline: null });
+            }
+            else {
+                T(ctx, 'USATO', x + w / 2, y + 18, { color: '#7a1426', align: 'center', outline: null });
+            }
+        });
+        var per = 4;
+        g.players.forEach(function (p, i) {
+            var x = 8 + (i % per) * 87, y = 222 + ((i / per) | 0) * 21, w = 82;
+            ctx.fillStyle = '#0a0f33';
+            ctx.fillRect(x, y, w, 18);
+            ctx.fillStyle = p.connected ? PLAYER_COLOR(p.slot) : '#444a66';
+            ctx.fillRect(x, y, 4, 18);
+            T(ctx, p.name, x + 8, y + 5, { color: p.connected ? PLAYER_COLOR(p.slot) : '#6b7399', outline: null });
+            if (g.stage === 'ask' && p.vote >= 0)
+                tick(ctx, x + w - 10, y + 7, '#7dff8a');
+            if (reveal) {
+                if (p.res === 1)
+                    tick(ctx, x + w - 10, y + 7, '#7dff8a');
+                else if (p.res === 0)
+                    cross(ctx, x + w - 9, y + 7, '#ff5a5a');
+            }
+        });
+    }
+    function menu(ctx, g) {
+        var e_4, _a;
+        T(ctx, 'THE', W / 2, 14, { color: '#cfd8ff', scale: 2, align: 'center', outline: COL.ink });
+        T(ctx, 'BILLIONAIRE', W / 2, 34, { color: COL.gold, scale: 4, align: 'center', outline: COL.ink, shadow: '#a3172a' });
+        for (var i = 0; i < 6; i++) {
+            var x = 30 + i * 84, y = 70 + Math.sin(g.clock * 3 + i) * 3;
+            coin(ctx, x, y);
+        }
+        var canArena = g.connected().length >= C.ARENA_MIN_PLAYERS;
+        var cards = [
+            { id: 'arena', x: 24, title: 'SFIDA', sub: 'TUTTI CONTRO TUTTI', lines: ['2-8 GIOCATORI', '10 DOMANDE', 'CHI NE INDOVINA', 'DI PIU VINCE!', 'AIUTI PERSONALI'], dis: !canArena },
+            { id: 'team', x: 252, title: 'SQUADRA', sub: 'TUTTI INSIEME', lines: ['1-8 GIOCATORI', '15 DOMANDE', 'ARRIVATE A', '€ 1.000.000!', 'AIUTI DI SQUADRA'], dis: false },
+        ];
+        var _loop_3 = function (c) {
+            var sel = g.menuSel === c.id;
+            var pulse = sel && ((g.clock * 4) | 0) % 2 === 0;
+            panel(ctx, c.x, 92, 204, 112, c.dis ? '#0c1236' : sel ? '#2a3a9a' : COL.panel, sel ? (pulse ? '#fff1a0' : COL.gold) : c.dis ? '#2a3470' : COL.line);
+            T(ctx, c.title, c.x + 102, 99, { color: c.dis ? '#3a4690' : COL.gold, scale: 3, align: 'center', outline: COL.ink });
+            T(ctx, c.sub, c.x + 102, 127, { color: c.dis ? '#3a4690' : '#cfd8ff', align: 'center', outline: null });
+            c.lines.forEach(function (l, i) { return T(ctx, l, c.x + 102, 144 + i * 11, { color: c.dis ? '#3a4690' : i % 5 === 3 ? COL.gold : COL.white, align: 'center', outline: null }); });
+            if (c.dis)
+                T(ctx, 'SERVONO ALMENO 2 GIOCATORI', c.x + 102, 195, { color: '#ff5a5a', align: 'center', outline: null });
+        };
+        try {
+            for (var cards_1 = __values(cards), cards_1_1 = cards_1.next(); !cards_1_1.done; cards_1_1 = cards_1.next()) {
+                var c = cards_1_1.value;
+                _loop_3(c);
+            }
+        }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        finally {
+            try {
+                if (cards_1_1 && !cards_1_1.done && (_a = cards_1.return)) _a.call(cards_1);
+            }
+            finally { if (e_4) throw e_4.error; }
+        }
+        g.players.forEach(function (p, i) {
+            var x = 24 + (i % 4) * 114, y = 214 + ((i / 4) | 0) * 13;
+            ctx.fillStyle = PLAYER_COLOR(p.slot);
+            ctx.fillRect(x, y, 5, 8);
+            T(ctx, p.name, x + 9, y + 1, { color: p.connected ? COL.white : COL.dim, outline: null });
+        });
+        if (g.notice)
+            T(ctx, g.notice, W / 2, 244, { color: '#ff5a5a', align: 'center', outline: COL.ink });
+        else
+            T(ctx, 'IL CAPO SCEGLIE DAL TELEFONO (O FRECCE + INVIO)', W / 2, 244, { color: COL.dim, align: 'center', outline: null });
+    }
+    function coin(ctx, x, y) {
+        ctx.fillStyle = COL.ink;
+        ctx.fillRect(x - 6, y - 4, 12, 12);
+        ctx.fillRect(x - 4, y - 6, 8, 16);
+        ctx.fillStyle = COL.goldDark;
+        ctx.fillRect(x - 5, y - 3, 10, 10);
+        ctx.fillRect(x - 3, y - 5, 6, 14);
+        ctx.fillStyle = COL.gold;
+        ctx.fillRect(x - 4, y - 3, 8, 10);
+        ctx.fillRect(x - 3, y - 4, 6, 12);
+        T(ctx, '€', x, y, { color: COL.goldDark, align: 'center', outline: null });
+    }
+    function intro(ctx, g) {
+        var team = g.mode === 'team';
+        T(ctx, team ? 'SQUADRA' : 'SFIDA', W / 2, 52, { color: COL.gold, scale: 5, align: 'center', outline: COL.ink, shadow: '#a3172a' });
+        T(ctx, team ? 'TUTTI INSIEME VERSO IL MILIONE!' : 'TUTTI CONTRO TUTTI!', W / 2, 100, { color: COL.white, scale: 1, align: 'center', outline: COL.ink });
+        var lines = team
+            ? ['15 DOMANDE: SI SBAGLIA = SI TORNA ALL\'ULTIMA SOGLIA SICURA', 'SOGLIE SICURE: € 1.000 E € 32.000', 'RISPONDE LA RISPOSTA PIU VOTATA', 'AIUTI DI SQUADRA: SERVE LA MAGGIORANZA']
+            : ['10 DOMANDE: OGNI RISPOSTA GIUSTA VALE UN PUNTO', 'RISPONDETE DAL TELEFONO, 60 SECONDI A DOMANDA', 'OGNUNO HA I SUOI 4 AIUTI: UNO SOLO USO CIASCUNO', 'VINCE CHI NE INDOVINA DI PIU!'];
+        lines.forEach(function (l, i) { return T(ctx, l, W / 2, 124 + i * 14, { color: i === 0 ? COL.gold : '#cfd8ff', align: 'center', outline: null }); });
+        C.LIFE.forEach(function (l, k) {
+            var x = 56 + k * 92;
+            panel(ctx, x, 192, 84, 20, COL.panel, COL.life[k]);
+            T(ctx, l.name, x + 42, 199, { color: COL.life[k], align: 'center', outline: null });
+        });
+        ctx.fillStyle = COL.ink;
+        ctx.fillRect(120, 236, 240, 6);
+        ctx.fillStyle = COL.gold;
+        ctx.fillRect(120, 236, Math.round(240 * Math.min(1, g.t / C.INTRO)), 6);
+        T(ctx, 'PREPARATEVI!', W / 2, 224, { color: '#ffffff', align: 'center', outline: COL.ink });
+    }
+    function endBanner(ctx, g) {
+        ctx.fillStyle = 'rgba(10,12,30,0.62)';
+        ctx.fillRect(0, 0, W, H);
+        var team = g.mode === 'team';
+        if (team) {
+            var r = g.result || { prize: 0 };
+            T(ctx, r.million ? 'MILIONARI!' : r.prize > 0 ? 'BRAVI!' : 'GAME OVER', W / 2, 78, { color: COL.gold, scale: 5, align: 'center', outline: COL.ink, shadow: '#a3172a' });
+            T(ctx, r.million ? '€ 1.000.000' : r.prize > 0 ? '€ ' + fmt(r.prize) : '€ 0', W / 2, 130, { color: COL.white, scale: 3, align: 'center', outline: COL.ink });
+        }
+        else {
+            T(ctx, 'FINE!', W / 2, 78, { color: COL.gold, scale: 5, align: 'center', outline: COL.ink, shadow: '#a3172a' });
+            var top = g.players.slice().sort(function (a, b) { return b.score - a.score || a.timeSum - b.timeSum; })[0];
+            if (top)
+                T(ctx, top.name + ' VINCE CON ' + top.score + '/' + g.total, W / 2, 130, { color: PLAYER_COLOR(top.slot), scale: 2, align: 'center', outline: COL.ink });
+        }
+    }
+    function draw(ctx, g) {
+        var e_5, _a;
+        ctx.imageSmoothingEnabled = false;
+        background(ctx, g);
+        if (g.stage === 'menu')
+            menu(ctx, g);
+        else if (g.stage === 'intro')
+            intro(ctx, g);
+        else {
+            var q = g.cur();
+            header(ctx, g);
+            question(ctx, g, q);
+            options(ctx, g, q);
+            if (g.mode === 'arena') {
+                scoreboard(ctx, g);
+                arenaLower(ctx, g, q);
+            }
+            else {
+                ladder(ctx, g);
+                teamLower(ctx, g, q);
+            }
+            if (g.stage === 'end')
+                endBanner(ctx, g);
+        }
+        try {
+            for (var _b = __values(g.parts), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var p = _c.value;
+                ctx.fillStyle = p.c;
+                ctx.fillRect(Math.round(p.x), Math.round(p.y), 3, 3);
+            }
+        }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_5) throw e_5.error; }
+        }
+    }
+    function demo(ctx) {
+        var coins = [];
+        for (var i = 0; i < 26; i++)
+            coins.push({ x: Math.random() * W, y: Math.random() * H, v: 14 + Math.random() * 26, p: Math.random() * 6 });
+        var g = { clock: 0 };
+        return {
+            update: function (dt) {
+                var e_6, _a;
+                g.clock += dt;
+                try {
+                    for (var coins_1 = __values(coins), coins_1_1 = coins_1.next(); !coins_1_1.done; coins_1_1 = coins_1.next()) {
+                        var c = coins_1_1.value;
+                        c.y += c.v * dt;
+                        if (c.y > H + 10) {
+                            c.y = -10;
+                            c.x = Math.random() * W;
+                        }
+                    }
+                }
+                catch (e_6_1) { e_6 = { error: e_6_1 }; }
+                finally {
+                    try {
+                        if (coins_1_1 && !coins_1_1.done && (_a = coins_1.return)) _a.call(coins_1);
+                    }
+                    finally { if (e_6) throw e_6.error; }
+                }
+            },
+            draw: function () {
+                var e_7, _a;
+                background(ctx, g);
+                try {
+                    for (var coins_2 = __values(coins), coins_2_1 = coins_2.next(); !coins_2_1.done; coins_2_1 = coins_2.next()) {
+                        var c = coins_2_1.value;
+                        coin(ctx, Math.round(c.x + Math.sin(g.clock + c.p) * 6), Math.round(c.y));
+                    }
+                }
+                catch (e_7_1) { e_7 = { error: e_7_1 }; }
+                finally {
+                    try {
+                        if (coins_2_1 && !coins_2_1.done && (_a = coins_2.return)) _a.call(coins_2);
+                    }
+                    finally { if (e_7) throw e_7.error; }
+                }
+            },
+        };
+    }
+    window.BillRender = { draw: draw, demo: demo, coin: coin };
+})();
+
+/* ---- js/games/billionaire/index.js ---- */
+"use strict";
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+(function () {
+    'use strict';
+    var C = BILL_CFG;
+    Sfx.register('bill_intro', function (_a) {
+        var tone = _a.tone, N = _a.N;
+        [[60, 0.12], [64, 0.12], [67, 0.12], [72, 0.35]].forEach(function (_a, i) {
+            var _b = __read(_a, 2), n = _b[0], d = _b[1];
+            tone('square', N(n), null, d, 0.14, i * 0.13);
+            tone('triangle', N(n - 12), null, d, 0.22, i * 0.13);
+        });
+    });
+    Sfx.register('bill_q', function (_a) {
+        var tone = _a.tone, N = _a.N;
+        tone('square', N(79), null, 0.07, 0.12);
+        tone('square', N(86), null, 0.12, 0.12, 0.08);
+    });
+    Sfx.register('bill_select', function (_a) {
+        var tone = _a.tone, N = _a.N;
+        tone('square', N(88), null, 0.04, 0.08);
+    });
+    Sfx.register('bill_tick', function (_a) {
+        var tone = _a.tone, N = _a.N;
+        tone('square', N(93), null, 0.04, 0.09);
+    });
+    Sfx.register('bill_lock', function (_a) {
+        var tone = _a.tone, N = _a.N;
+        tone('sawtooth', 160, 55, 0.5, 0.16);
+        tone('triangle', N(43), null, 0.9, 0.24);
+        tone('square', N(55), null, 0.12, 0.08, 0.5);
+        tone('square', N(55), null, 0.12, 0.08, 0.9);
+    });
+    Sfx.register('bill_correct', function (_a) {
+        var tone = _a.tone, N = _a.N;
+        [72, 76, 79, 84].forEach(function (n, i) { tone('square', N(n), null, 0.1, 0.14, i * 0.08); tone('triangle', N(n - 12), null, 0.12, 0.2, i * 0.08); });
+        tone('square', N(84), null, 0.4, 0.14, 0.34);
+    });
+    Sfx.register('bill_wrong', function (_a) {
+        var tone = _a.tone;
+        tone('sawtooth', 320, 70, 0.6, 0.2);
+        tone('square', 160, 60, 0.7, 0.14, 0.12);
+    });
+    Sfx.register('bill_life', function (_a) {
+        var tone = _a.tone, N = _a.N;
+        tone('triangle', 400, 1600, 0.25, 0.18);
+        tone('square', N(91), null, 0.1, 0.1, 0.24);
+        tone('square', N(96), null, 0.14, 0.1, 0.34);
+    });
+    Sfx.register('bill_million', function (_a) {
+        var e_1, _b;
+        var tone = _a.tone, N = _a.N;
+        var mel = [[72, 0.12], [76, 0.12], [79, 0.12], [84, 0.36], [79, 0.12], [84, 0.12], [88, 0.12], [91, 0.7]];
+        var t = 0;
+        try {
+            for (var mel_1 = __values(mel), mel_1_1 = mel_1.next(); !mel_1_1.done; mel_1_1 = mel_1.next()) {
+                var _c = __read(mel_1_1.value, 2), n = _c[0], d = _c[1];
+                tone('square', N(n), null, d * 0.9, 0.16, t);
+                tone('square', N(n - 7), null, d * 0.9, 0.07, t);
+                tone('triangle', N(n - 24), null, d, 0.3, t);
+                t += d;
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (mel_1_1 && !mel_1_1.done && (_b = mel_1.return)) _b.call(mel_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+    });
+    Sfx.register('bill_end', function (_a) {
+        var tone = _a.tone, N = _a.N;
+        [60, 64, 67].forEach(function (n) { return tone('triangle', N(n), null, 0.9, 0.16); });
+    });
+    var ctx = null;
+    function ensureCanvas() {
+        var cv = document.getElementById('game');
+        cv.width = C.W;
+        cv.height = C.H;
+        ctx = cv.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+    }
+    var BillSession = (function () {
+        function BillSession(room, humans) {
+            var _this = this;
+            this.room = room;
+            ensureCanvas();
+            this.game = new BillGame(humans.map(function (h) { return ({ slot: h.slot, name: h.name }); }), function (t, d) { return _this.onEvent(t, d); });
+        }
+        BillSession.prototype.update = function (dt) { this.game.update(dt); };
+        BillSession.prototype.draw = function () { BillRender.draw(ctx, this.game); };
+        BillSession.prototype.key = function (k) { this.game.key(k); };
+        BillSession.prototype.input = function (slot, m) {
+            if (!m || typeof m.t !== 'string')
+                return;
+            var g = this.game;
+            if (m.t === 'mode') {
+                if (this.room.isLead(slot))
+                    g.pickMode(m.m);
+            }
+            else if (m.t === 'ans')
+                g.answer(slot, m.o);
+            else if (m.t === 'life')
+                g.useLife(slot, m.k);
+        };
+        BillSession.prototype.setConnected = function (slot, on) { this.game.setConnected(slot, on); };
+        BillSession.prototype.hud = function (slot) { return this.game.hud(slot, this.room.isLead(slot)); };
+        BillSession.prototype.onEvent = function (type, data) {
+            var e_2, _a;
+            if (type === 'sfx')
+                Sfx.play(data);
+            else if (type === 'music') {
+                if (data)
+                    Sfx.startMusic('quiz');
+                else
+                    Sfx.stopMusic();
+            }
+            else if (type === 'buzz')
+                this.room.buzz(data.slot, data.pattern);
+            else if (type === 'dirty') {
+                try {
+                    for (var _b = __values(this.game.players), _c = _b.next(); !_c.done; _c = _b.next()) {
+                        var p = _c.value;
+                        this.room.hudChanged(p.slot);
+                    }
+                }
+                catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                finally {
+                    try {
+                        if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                    }
+                    finally { if (e_2) throw e_2.error; }
+                }
+            }
+            else if (type === 'over')
+                this.room.finish(data.ranking, data.opts);
+        };
+        BillSession.prototype.stop = function () { Sfx.stopMusic(); };
+        return BillSession;
+    }());
+    function demo() {
+        ensureCanvas();
+        return BillRender.demo(ctx);
+    }
+    GAMES.register({
+        id: 'billionaire',
+        title: 'THE BILLIONAIRE',
+        desc: 'Quiz di cultura generale. SFIDA: fino a 8 giocatori, 10 domande, vince chi ne azzecca di più. SQUADRA: tutti insieme verso il milione!',
+        players: '1-8',
+        maxPlayers: 8,
+        layout: 'billionaire',
+        available: true,
+        icon: function (c, x, y) {
+            for (var j = 0; j < 24; j++)
+                for (var i = 0; i < 24; i++) {
+                    var dx = i - 11.5, dy = j - 11.5, d = Math.hypot(dx, dy);
+                    if (d > 11.6)
+                        continue;
+                    c.fillStyle = d > 9.6 ? '#1b1b26' : d > 8 ? '#c27a12' : (dx + dy < -7 ? '#fff1a0' : '#ffd23b');
+                    c.fillRect(x + i, y + j, 1, 1);
+                }
+            c.fillStyle = '#8a4f0c';
+            ['..###', '.#...', '####.', '.#...', '####.', '.#...', '..###'].forEach(function (r, j) { return __spreadArray([], __read(r), false).forEach(function (ch, i) { if (ch === '#')
+                c.fillRect(x + 9 + i, y + 8 + j, 1, 1); }); });
+        },
+        demo: demo,
+        create: function (room, humans) { return new BillSession(room, humans); },
+    });
+})();
+
 /* ---- js/games/upcoming.js ---- */
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
@@ -9169,8 +10830,10 @@ var __read = (this && this.__read) || function (o, n) {
     var selected = 'shooter';
     var playingId = null;
     var lastRanking = null;
-    var slots = [null, null, null, null];
-    var evening = [null, null, null, null];
+    var MAXP = ROOM.MAX_PLAYERS;
+    var slots = new Array(MAXP).fill(null);
+    var evening = new Array(MAXP).fill(null);
+    var lastOpts = {};
     var waiting = new Map();
     var overShownAt = 0;
     var audioOn = false;
@@ -9223,7 +10886,7 @@ var __read = (this && this.__read) || function (o, n) {
             room.key = m.key;
             sessionStorage.setItem('pgr-room', JSON.stringify({ code: room.code, key: room.key }));
             if (changed)
-                for (var i = 0; i < 4; i++) {
+                for (var i = 0; i < MAXP; i++) {
                     slots[i] = null;
                     evening[i] = null;
                 }
@@ -9350,7 +11013,7 @@ var __read = (this && this.__read) || function (o, n) {
         }
         var free = slots.findIndex(function (x) { return !x; });
         if (free === -1) {
-            toPhone(cid, { t: 'full', msg: 'STANZA PIENA (4 GIOCATORI)' });
+            toPhone(cid, { t: 'full', msg: 'STANZA PIENA (' + MAXP + ' GIOCATORI)' });
             return;
         }
         addPlayer(free, name, cid);
@@ -9383,8 +11046,13 @@ var __read = (this && this.__read) || function (o, n) {
                 pts: evening[x.slot] ? evening[x.slot].pts : 0,
             }); }),
         };
-        if (phase === 'over' && lastRanking)
+        if (phase === 'over' && lastRanking) {
             msg.rank = lastRanking;
+            if (lastOpts.title)
+                msg.overTitle = lastOpts.title;
+            if (lastOpts.sub)
+                msg.overSub = lastOpts.sub;
+        }
         toPhone(s.cid, msg);
         sendHud(s.slot, true);
     }
@@ -9457,9 +11125,17 @@ var __read = (this && this.__read) || function (o, n) {
             finally { if (e_3) throw e_3.error; }
         }
         waiting.clear();
-        for (var i = 0; i < 4; i++)
+        for (var i = 0; i < MAXP; i++)
             if (slots[i] && !slots[i].connected)
                 slots[i] = null;
+        var limit = g.maxPlayers || ROOM.DEFAULT_GAME_PLAYERS;
+        if (humans().length > limit) {
+            Sfx.play('empty');
+            var msg = g.title + ': AL MASSIMO ' + limit + ' GIOCATORI!';
+            flashHint(msg);
+            net.send({ t: 'all', d: { t: 'hint', msg: msg } });
+            return;
+        }
         if (session)
             session.stop();
         playingId = g.id;
@@ -9480,13 +11156,14 @@ var __read = (this && this.__read) || function (o, n) {
         phase = 'over';
         var hum = ranking.filter(function (r) { return !r.bot; });
         ranking.forEach(function (r) { r.pts = 0; });
+        lastOpts = opts;
         if (hum.length >= 2) {
             hum.forEach(function (r, i) {
-                r.pts = ROOM.EVENING_POINTS[i] || 0;
+                r.pts = opts.teamPts !== undefined ? opts.teamPts : (ROOM.EVENING_POINTS[i] || 0);
                 var e = evening[r.slot];
                 if (e) {
                     e.pts += r.pts;
-                    if (i === 0)
+                    if (opts.teamPts !== undefined ? opts.teamPts >= 3 : i === 0)
                         e.wins++;
                 }
             });
@@ -9507,8 +11184,15 @@ var __read = (this && this.__read) || function (o, n) {
     function showOver(ranking) {
         var w = ranking[0];
         var pc = PLAYERS[w.slot];
-        $('winnerName').textContent = w.name + (w.bot ? ' (CPU)' : '');
-        $('winnerName').style.color = pc.color;
+        $('winnerTitle').textContent = lastOpts.title || 'WINNER!';
+        if (lastOpts.sub) {
+            $('winnerName').textContent = lastOpts.sub;
+            $('winnerName').style.color = '#fff';
+        }
+        else {
+            $('winnerName').textContent = w.name + (w.bot ? ' (CPU)' : '');
+            $('winnerName').style.color = pc.color;
+        }
         $('overGame').textContent = GAMES.get(playingId).title;
         var body = $('rankBody');
         body.innerHTML = '';
@@ -9603,6 +11287,7 @@ var __read = (this && this.__read) || function (o, n) {
         var e_6, _a;
         var wrap = $('gameCards');
         wrap.innerHTML = '';
+        wrap.classList.toggle('many', GAMES.list.length > 4);
         var _loop_1 = function (g) {
             var card = document.createElement('button');
             card.className = 'game-card' + (g.available ? '' : ' soon');
@@ -9663,11 +11348,17 @@ var __read = (this && this.__read) || function (o, n) {
         var g = GAMES.get(selected);
         $('gameDesc').textContent = g.desc;
         $('gamePlayers').textContent = 'GIOCATORI: ' + g.players;
+        $('gamePlayers').classList.toggle('warn', humans().length > (g.maxPlayers || ROOM.DEFAULT_GAME_PLAYERS));
         $('playBtn').textContent = g.available ? 'GIOCA!' : 'PROSSIMAMENTE';
         $('playBtn').disabled = !g.available;
         var ul = $('slots');
         ul.innerHTML = '';
-        for (var i = 0; i < 4; i++) {
+        var rows = 4;
+        for (var i = 0; i < MAXP; i++)
+            if (slots[i])
+                rows = Math.max(rows, i + 1);
+        ul.classList.toggle('compact', rows > 4);
+        for (var i = 0; i < rows; i++) {
             var s = slots[i];
             var pc = PLAYERS[i];
             var li = document.createElement('li');
@@ -9712,7 +11403,7 @@ var __read = (this && this.__read) || function (o, n) {
         if (phase !== 'hub')
             return;
         var changed = false;
-        for (var i = 0; i < 4; i++) {
+        for (var i = 0; i < MAXP; i++) {
             var s = slots[i];
             if (s && !s.connected && performance.now() - s.leftAt > 20000) {
                 slots[i] = null;
@@ -9739,7 +11430,7 @@ var __read = (this && this.__read) || function (o, n) {
     $('againBtn').onclick = function () { return startMatch(playingId); };
     $('lobbyBtn').onclick = function () { return backToHub(); };
     $('resetBtn').onclick = function () {
-        for (var i = 0; i < 4; i++)
+        for (var i = 0; i < MAXP; i++)
             if (evening[i]) {
                 evening[i].pts = 0;
                 evening[i].wins = 0;

@@ -25,9 +25,11 @@
   let playingId = null;         // gioco della partita in corso / appena finita
   let lastRanking = null;
   /** slots[i] = { slot, name, cid, connected, leftAt } oppure null */
-  const slots = [null, null, null, null];
+  const MAXP = ROOM.MAX_PLAYERS;
+  const slots = new Array(MAXP).fill(null);
   /** punti della serata per slot: { name, pts, wins } */
-  const evening = [null, null, null, null];
+  const evening = new Array(MAXP).fill(null);
+  let lastOpts = {};            // opzioni dell'ultima fine partita (titolo, punti squadra...)
   const waiting = new Map();    // cid -> nome (arrivati a partita in corso)
   let overShownAt = 0;
   let audioOn = false;
@@ -89,7 +91,7 @@
       const changed = m.code !== room.code;
       room.code = m.code; room.key = m.key;
       sessionStorage.setItem('pgr-room', JSON.stringify({ code: room.code, key: room.key }));
-      if (changed) for (let i = 0; i < 4; i++) { slots[i] = null; evening[i] = null; }
+      if (changed) for (let i = 0; i < MAXP; i++) { slots[i] = null; evening[i] = null; }
       for (const cid of m.ctrls || []) {
         const s = slotByCid(cid);
         if (s) { s.connected = true; sendYou(s); }
@@ -181,7 +183,7 @@
       return;
     }
     const free = slots.findIndex((x) => !x);
-    if (free === -1) { toPhone(cid, { t: 'full', msg: 'STANZA PIENA (4 GIOCATORI)' }); return; }
+    if (free === -1) { toPhone(cid, { t: 'full', msg: 'STANZA PIENA (' + MAXP + ' GIOCATORI)' }); return; }
     addPlayer(free, name, cid);
     Sfx.play('join');
     refreshHub();
@@ -210,7 +212,11 @@
         pts: evening[x.slot] ? evening[x.slot].pts : 0,
       })),
     };
-    if (phase === 'over' && lastRanking) msg.rank = lastRanking;
+    if (phase === 'over' && lastRanking) {
+      msg.rank = lastRanking;
+      if (lastOpts.title) msg.overTitle = lastOpts.title;
+      if (lastOpts.sub) msg.overSub = lastOpts.sub;
+    }
     toPhone(s.cid, msg);
     sendHud(s.slot, true);
   }
@@ -255,7 +261,17 @@
     }
     waiting.clear();
     // giocatori scollegati: fuori
-    for (let i = 0; i < 4; i++) if (slots[i] && !slots[i].connected) slots[i] = null;
+    for (let i = 0; i < MAXP; i++) if (slots[i] && !slots[i].connected) slots[i] = null;
+
+    // la sala arriva a 8 telefoni, ma quasi tutti i giochi ne gestiscono 4
+    const limit = g.maxPlayers || ROOM.DEFAULT_GAME_PLAYERS;
+    if (humans().length > limit) {
+      Sfx.play('empty');
+      const msg = g.title + ': AL MASSIMO ' + limit + ' GIOCATORI!';
+      flashHint(msg);
+      net.send({ t: 'all', d: { t: 'hint', msg } });
+      return;
+    }
 
     if (session) session.stop();
     playingId = g.id;
@@ -277,11 +293,13 @@
     // punti della serata: solo tra giocatori umani, e solo se sono almeno 2
     const hum = ranking.filter((r) => !r.bot);
     ranking.forEach((r) => { r.pts = 0; });
+    lastOpts = opts;
     if (hum.length >= 2) {
       hum.forEach((r, i) => {
-        r.pts = ROOM.EVENING_POINTS[i] || 0;
+        // giochi di squadra: stessi punti per tutti; altrimenti 3/2/1 in base alla posizione
+        r.pts = opts.teamPts !== undefined ? opts.teamPts : (ROOM.EVENING_POINTS[i] || 0);
         const e = evening[r.slot];
-        if (e) { e.pts += r.pts; if (i === 0) e.wins++; }
+        if (e) { e.pts += r.pts; if (opts.teamPts !== undefined ? opts.teamPts >= 3 : i === 0) e.wins++; }
       });
     }
     lastRanking = ranking.map((r) => ({ slot: r.slot, name: r.name, bot: !!r.bot, detail: r.detail || '', pts: r.pts }));
@@ -299,8 +317,15 @@
   function showOver(ranking) {
     const w = ranking[0];
     const pc = PLAYERS[w.slot];
-    $('winnerName').textContent = w.name + (w.bot ? ' (CPU)' : '');
-    $('winnerName').style.color = pc.color;
+    $('winnerTitle').textContent = lastOpts.title || 'WINNER!';
+    if (lastOpts.sub) {
+      // giochi di squadra: niente "vincitore", si mostra il risultato di tutti
+      $('winnerName').textContent = lastOpts.sub;
+      $('winnerName').style.color = '#fff';
+    } else {
+      $('winnerName').textContent = w.name + (w.bot ? ' (CPU)' : '');
+      $('winnerName').style.color = pc.color;
+    }
     $('overGame').textContent = GAMES.get(playingId).title;
     const body = $('rankBody');
     body.innerHTML = '';
@@ -367,6 +392,7 @@
   function buildGameCards() {
     const wrap = $('gameCards');
     wrap.innerHTML = '';
+    wrap.classList.toggle('many', GAMES.list.length > 4);   // 5 o più giochi: tre schede per riga
     for (const g of GAMES.list) {
       const card = document.createElement('button');
       card.className = 'game-card' + (g.available ? '' : ' soon');
@@ -396,13 +422,18 @@
     const g = GAMES.get(selected);
     $('gameDesc').textContent = g.desc;
     $('gamePlayers').textContent = 'GIOCATORI: ' + g.players;
+    $('gamePlayers').classList.toggle('warn', humans().length > (g.maxPlayers || ROOM.DEFAULT_GAME_PLAYERS));
     $('playBtn').textContent = g.available ? 'GIOCA!' : 'PROSSIMAMENTE';
     $('playBtn').disabled = !g.available;
 
     // squadra + punti della serata
     const ul = $('slots');
     ul.innerHTML = '';
-    for (let i = 0; i < 4; i++) {
+    // 4 righe sempre visibili; dal quinto giocatore in poi la lista si allunga (e si stringe)
+    let rows = 4;
+    for (let i = 0; i < MAXP; i++) if (slots[i]) rows = Math.max(rows, i + 1);
+    ul.classList.toggle('compact', rows > 4);
+    for (let i = 0; i < rows; i++) {
       const s = slots[i];
       const pc = PLAYERS[i];
       const li = document.createElement('li');
@@ -448,7 +479,7 @@
   setInterval(() => {
     if (phase !== 'hub') return;
     let changed = false;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < MAXP; i++) {
       const s = slots[i];
       if (s && !s.connected && performance.now() - s.leftAt > 20000) { slots[i] = null; changed = true; }
     }
@@ -473,7 +504,7 @@
   $('againBtn').onclick = () => startMatch(playingId);
   $('lobbyBtn').onclick = () => backToHub();
   $('resetBtn').onclick = () => {
-    for (let i = 0; i < 4; i++) if (evening[i]) { evening[i].pts = 0; evening[i].wins = 0; }
+    for (let i = 0; i < MAXP; i++) if (evening[i]) { evening[i].pts = 0; evening[i].wins = 0; }
     refreshHub(); broadcastYou();
   };
   $('muteBtn').onclick = () => { $('muteBtn').textContent = Sfx.toggleMute() ? 'AUDIO OFF' : 'AUDIO ON'; };

@@ -50,7 +50,7 @@ body.ctrl {
 .mini-roster li { font-size: 9px; padding: 7px 8px; background: var(--ink); border-left: 8px solid; }
 .mini-roster li.off { opacity: 0.4; }
 
-.game-list { display: grid; grid-template-columns: repeat(4, min0); grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 760px; }
+.game-list { display: grid; grid-template-columns: repeat(4, min0); grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 860px; }
 .game-btn {
   position: relative;
   font-family: inherit; color: #fff; text-align: center;
@@ -256,8 +256,80 @@ body.ctrl {
 .flash-layer.on { opacity: 0.35; transition: none; }
 .flash-layer.hit { background: var(--red); opacity: 0.5; transition: none; }
 
+/* --- THE BILLIONAIRE --- */
+#scrBill { padding: 0; justify-content: flex-start; align-items: stretch; }
+.bill-round { margin-left: auto; color: var(--yellow); font-size: 12px; }
+.bill-menu, .bill-msg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 8px 14px; min-height: 0; }
+.bill-modes { display: flex; gap: 12px; width: 100%; max-width: 720px; }
+.bmode {
+  flex: 1; font-family: inherit; color: #fff; background: #13235f; border: 4px solid #5b7be0;
+  padding: 14px 8px; display: flex; flex-direction: column; gap: 8px; align-items: center; touch-action: manipulation;
+}
+.bmode.sel { border-color: var(--yellow); background: #2a3a9a; }
+.bmode b { font-size: 16px; color: var(--yellow); text-shadow: 2px 2px 0 var(--ink); }
+.bmode span { font-size: 9px; }
+.bmode small { font-size: 7px; color: #cfd8ff; line-height: 1.6; }
+.bmode:disabled { opacity: 0.35; border-color: #3a3d48; }
+.bmode:not(:disabled):active { transform: translateY(2px); }
+
+.bill-play {
+  flex: 1; display: grid; min-height: 0; gap: 8px; padding: 8px 12px;
+  grid-template-columns: 1.7fr 1fr; grid-template-rows: auto minmax(0, 1fr);
+}
+.bill-q { grid-row: 1; grid-column: 1 / -1; margin: 0; font-size: 10px; line-height: 1.7; text-align: left; background: var(--ink); border: 4px solid #5b7be0; padding: 8px 10px; }
+.bill-opts { grid-row: 2; grid-column: 1; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: minmax(0, 1fr); gap: 8px; min-height: 0; }
+.bill-side { grid-row: 2; grid-column: 2; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.bopt {
+  font-family: inherit; color: #fff; text-align: left; background: #13235f; border: 4px solid #5b7be0;
+  display: flex; align-items: center; gap: 8px; padding: 4px 6px; font-size: 12px; line-height: 1.4; min-height: 0; overflow: hidden;
+  touch-action: manipulation; text-transform: uppercase;
+}
+.bopt b { flex: 0 0 auto; width: 24px; height: 24px; background: var(--orange); color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.bopt span { flex: 1; word-break: break-word; }
+.bopt.sel { background: #c27a12; border-color: var(--yellow); }
+.bopt.gone { opacity: 0.15; }
+.bopt:disabled:not(.sel):not(.gone) { opacity: 0.55; }
+.bopt:not(:disabled):active { transform: translateY(2px); filter: brightness(1.2); }
+.bill-info { flex: 1; min-height: 0; overflow: hidden; background: var(--ink); border: 4px solid #3a3d48; padding: 6px; display: flex; flex-direction: column; justify-content: center; gap: 6px; font-size: 8px; line-height: 1.6; }
+.bi-state { color: var(--yellow); text-align: center; }
+.bi-who { color: #9bffb0; }
+.bi-line { color: #fff; }
+.bi-aud { display: flex; gap: 6px; align-items: flex-end; justify-content: center; height: 66px; }
+.bi-aud div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 24px; height: 100%; }
+.bi-aud em { font-style: normal; font-size: 7px; color: var(--yellow); height: 10px; }
+.bi-aud i { display: block; width: 16px; background: var(--yellow); box-shadow: inset -3px 0 0 #c27a12; }
+.bi-aud b { font-size: 8px; margin-top: 3px; }
+.bill-life { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.blife {
+  font-family: inherit; color: #fff; background: var(--ink2); border: 4px solid #5b7be0; padding: 6px 2px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 8px; touch-action: manipulation; min-height: 38px;
+}
+.blife small { font-size: 6px; color: var(--grey); min-height: 8px; }
+.blife.voted { border-color: var(--yellow); background: #3a2a10; }
+.blife.used { opacity: 0.3; border-color: #3a3d48; }
+.blife:disabled:not(.used) { opacity: 0.6; }
+.blife:not(:disabled):active { transform: translateY(2px); }
+.bm-big { font-size: 24px; text-align: center; text-shadow: 3px 3px 0 var(--ink); line-height: 1.3; }
+.bm-sub { font-size: 10px; line-height: 1.9; text-align: center; color: #fff; max-width: 90%; }
+@media (orientation: portrait) {
+  .bill-play { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; }
+  .bill-opts { grid-column: 1; grid-template-columns: 1fr; }
+  .bill-side { grid-row: 3; grid-column: 1; }
+  .bill-info { flex: none; min-height: 70px; }
+  .bill-life { grid-template-columns: repeat(4, 1fr); }
+  .bill-modes { flex-direction: column; }
+  .bm-big { font-size: 20px; }
+}
+@media (max-height: 360px) and (orientation: landscape) {
+  .bill-play { padding: 6px 10px; gap: 6px; }
+  .bopt { font-size: 11px; }
+  .bill-info { font-size: 7px; padding: 4px; }
+  .bi-aud { height: 52px; }
+}
+
 /* --- Fine partita --- */
 .over-win { font-size: 16px; margin: 0 0 2vmin; }
+.over-rank.many { font-size: 8px; line-height: 1.9; }
 .over-rank { list-style: none; padding: 0; margin: 0 0 2vmin; font-size: 11px; line-height: 2.2; }
 .over-rank li.me { background: var(--ink); padding: 0 10px; }
 .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }

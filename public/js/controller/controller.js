@@ -31,7 +31,7 @@
   // ------------------------------------------------------------------
   // Schermate
   // ------------------------------------------------------------------
-  const screens = ['scrJoin', 'scrLobby', 'scrPad', 'scrSheep', 'scrDiff', 'scrKart', 'scrOver', 'scrMsg'];
+  const screens = ['scrJoin', 'scrLobby', 'scrPad', 'scrSheep', 'scrDiff', 'scrKart', 'scrBill', 'scrOver', 'scrMsg'];
   let current = 'scrJoin';
   function show(id) {
     current = id;
@@ -117,6 +117,7 @@
       case 'st': onHud(m); break;
       case 'buzz': buzz(m.p); break;
       case 'scene': diffScene = m; drawDiff(); break;
+      case 'hint': $('lobbyNote').textContent = m.msg; buzz([60, 40, 60]); break;   // es. "troppi giocatori per questo gioco"
       default:
     }
   }
@@ -129,8 +130,9 @@
   $('btnRetry').onclick = () => { if (net) net.send({ t: 'hello', name: myName }); };
 
   // Quale schermata del telefono usa ciascun gioco
-  const LAYOUT_SCREENS = { shooter: 'scrPad', sheep: 'scrSheep', diff: 'scrDiff', kart: 'scrKart' };
-  const GAME_SCREENS = new Set(Object.values(LAYOUT_SCREENS));
+  const LAYOUT_SCREENS = { shooter: 'scrPad', sheep: 'scrSheep', diff: 'scrDiff', kart: 'scrKart', billionaire: 'scrBill' };
+  // schermate che vogliono il telefono in orizzontale e i tasti/joystick (il quiz funziona in entrambe le posizioni)
+  const GAME_SCREENS = new Set(Object.values(LAYOUT_SCREENS).filter((s) => s !== 'scrBill'));
 
   function onYou(m) {
     me = m;
@@ -145,8 +147,8 @@
       const scr = LAYOUT_SCREENS[m.layout] || 'scrPad';
       $('padChip').textContent = m.slot + 1;
       $('padName').textContent = m.name;
-      for (const el of document.querySelectorAll('.sheep-chip, .diff-chip, .kart-chip')) el.textContent = m.slot + 1;
-      for (const el of document.querySelectorAll('.sheep-name')) el.textContent = m.name;
+      for (const el of document.querySelectorAll('.sheep-chip, .diff-chip, .kart-chip, .bill-chip')) el.textContent = m.slot + 1;
+      for (const el of document.querySelectorAll('.sheep-name, .bill-name')) el.textContent = m.name;
       if (current !== scr) resetStick();
       show(scr);
     } else if (m.phase === 'over') {
@@ -156,18 +158,20 @@
       if (m.rank) {
         const w = m.rank[0];
         const iWon = w && w.slot === m.slot && !w.bot;
-        $('overTitle').textContent = iWon ? 'WINNER!' : 'GAME OVER';
-        $('overWin').textContent = iWon ? 'HAI VINTO TU!' : 'VINCE ' + w.name;
-        $('overWin').style.color = iWon ? m.color : '#fff';
+        // giochi di squadra: la sala manda titolo e testo suoi (es. "MILIONARI!")
+        $('overTitle').textContent = m.overTitle || (iWon ? 'WINNER!' : 'GAME OVER');
+        $('overWin').textContent = m.overSub || (iWon ? 'HAI VINTO TU!' : 'VINCE ' + w.name);
+        $('overWin').style.color = m.overSub ? '#fff' : (iWon ? m.color : '#fff');
         const ol = $('overRank');
         ol.innerHTML = '';
+        ol.classList.toggle('many', m.rank.length > 5);
         m.rank.forEach((r, i) => {
           const li = document.createElement('li');
           li.textContent = `${i + 1}° ${r.name}  ${r.detail}${r.pts ? '  +' + r.pts + ' PT' : ''}`;
           if (r.slot === m.slot && !r.bot) li.className = 'me';
           ol.appendChild(li);
         });
-        if (iWon && !overBuzzed) { overBuzzed = true; buzz([100, 80, 100, 80, 300]); }
+        if ((iWon || m.overTitle === 'MILIONARI!') && !overBuzzed) { overBuzzed = true; buzz([100, 80, 100, 80, 300]); }
       }
       $('btnAgain').classList.toggle('hidden', !m.lead);
       $('btnLobby').classList.toggle('hidden', !m.lead);
@@ -223,6 +227,7 @@
   let lastPow = undefined, lastDead = 0, lastKills = 0;
 
   function onHud(h) {
+    if (me && me.layout === 'billionaire') return onBillHud(h);
     if (me && me.layout === 'sheep') return onSheepHud(h);
     if (me && me.layout === 'diff') return onDiffHud(h);
     if (me && me.layout === 'kart') return onKartHud(h);
@@ -718,6 +723,125 @@
     }
   }, 33);
   drawWheel(0);
+
+  // ------------------------------------------------------------------
+  // THE BILLIONAIRE: scelta modalità, risposte A-D e aiuti
+  // ------------------------------------------------------------------
+  const LIFE_NAMES = ['50/50', 'PUBBLICO', 'AMICO', 'CAMBIA'];
+  const bfmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  let billH = null;
+  const billOptEls = [], billLifeEls = [];
+
+  for (let i = 0; i < 4; i++) {
+    const b = document.createElement('button');
+    b.className = 'bopt';
+    b.innerHTML = '<b></b><span></span>';
+    b.firstChild.textContent = 'ABCD'[i];
+    b.onclick = () => { if (billH && billH.st === 'ask') { send({ t: 'ans', o: i }); buzz(15); } };
+    $('billOpts').appendChild(b);
+    billOptEls.push(b);
+  }
+  for (let i = 0; i < 4; i++) {
+    const b = document.createElement('button');
+    b.className = 'blife';
+    b.innerHTML = '<span></span><small></small>';
+    b.firstChild.textContent = LIFE_NAMES[i];
+    b.onclick = () => { if (billH && billH.st === 'ask') { send({ t: 'life', k: i }); buzz(25); } };
+    $('billLife').appendChild(b);
+    billLifeEls.push(b);
+  }
+  $('btnArena').onclick = () => { send({ t: 'mode', m: 'arena' }); buzz(20); };
+  $('btnTeam').onclick = () => { send({ t: 'mode', m: 'team' }); buzz(20); };
+
+  function billMsg(big, sub, color) {
+    $('billBig').textContent = big;
+    $('billBig').style.color = color || 'var(--yellow)';
+    $('billSub').textContent = sub || '';
+  }
+
+  function onBillHud(h) {
+    billH = h;
+    const st = h.st;
+    const play = st === 'ask' || st === 'suspense';
+    $('billMenu').classList.toggle('hidden', st !== 'menu');
+    $('billPlay').classList.toggle('hidden', !play);
+    $('billMsg').classList.toggle('hidden', play || st === 'menu');
+    $('billRound').textContent = h.tot ? h.n + '/' + h.tot : '';
+    $('billTime').textContent = st === 'ask' && h.tm != null ? h.tm : '';
+
+    if (st === 'menu') {
+      $('btnArena').disabled = !(h.lead && h.ca);
+      $('btnTeam').disabled = !h.lead;
+      $('btnArena').classList.toggle('sel', h.sel === 'arena');
+      $('btnTeam').classList.toggle('sel', h.sel === 'team');
+      $('billMenuNote').textContent = h.nt || (h.lead
+        ? (h.ca ? 'SEI IL CAPO: SCEGLI LA MODALITÀ' : 'SEI IL CAPO: SCEGLI (LA SFIDA VUOLE 2 GIOCATORI)')
+        : 'IL CAPO STA SCEGLIENDO LA MODALITÀ...');
+      return;
+    }
+    if (st === 'intro') {
+      billMsg('PREPARATI!', h.md === 'team' ? 'SQUADRA: TUTTI INSIEME VERSO IL MILIONE' : 'SFIDA: TUTTI CONTRO TUTTI');
+      return;
+    }
+
+    if (play) {
+      const arena = h.md === 'arena';
+      const locked = arena && h.pick >= 0;
+      $('billQ').classList.toggle('hidden', !h.sw);
+      if (h.sw) $('billQ').textContent = h.q;
+      billOptEls.forEach((b, i) => {
+        b.lastChild.textContent = h.o[i];
+        b.classList.toggle('gone', h.el.includes(i));
+        b.classList.toggle('sel', h.pick === i);
+        b.disabled = st !== 'ask' || h.el.includes(i) || locked;
+      });
+      billLifeEls.forEach((b, k) => {
+        const avail = !!h.lf[k];
+        b.classList.toggle('used', !avail);
+        b.classList.toggle('voted', !arena && !!(h.mine && h.mine[k]));
+        b.disabled = st !== 'ask' || !avail || locked;
+        b.lastChild.textContent = !avail ? 'USATO' : (!arena && h.lv ? h.lv[k] + '/' + h.need : '');
+      });
+
+      // riquadro informazioni: aiuto ricevuto o stato
+      const box = $('billInfo');
+      box.innerHTML = '';
+      const line = (txt, cls) => { const d = document.createElement('div'); d.className = cls || 'bi-line'; d.textContent = txt; box.appendChild(d); };
+      if (h.info && h.info.t === 'aud') {
+        const wrap = document.createElement('div');
+        wrap.className = 'bi-aud';
+        h.info.p.forEach((pc, i) => {
+          const col = document.createElement('div');
+          col.innerHTML = '<em></em><i></i><b></b>';
+          col.children[0].textContent = h.el.includes(i) ? '' : pc + '%';
+          col.children[1].style.height = (h.el.includes(i) ? 0 : Math.max(2, pc * 0.5)) + 'px';
+          col.children[2].textContent = 'ABCD'[i];
+          wrap.appendChild(col);
+        });
+        box.appendChild(wrap);
+      } else if (h.info && h.info.t === 'tel') {
+        line(h.info.who + ':', 'bi-who');
+        line(h.info.txt);
+      }
+      if (st === 'suspense') line(arena ? 'RISPOSTA BLOCCATA...' : 'SI BLOCCA LA RISPOSTA...', 'bi-state');
+      else if (arena && locked) line('RISPOSTA DATA! ASPETTA GLI ALTRI', 'bi-state');
+      else if (!arena && h.lk) line('TUTTI HANNO VOTATO! ULTIMI SECONDI PER CAMBIARE', 'bi-state');
+      else if (!arena && h.pick >= 0) line('VOTO INVIATO (PUOI CAMBIARLO)', 'bi-state');
+      else if (!h.info) line(arena ? 'GUARDA LA DOMANDA SULLA TV' : 'VOTA: RISPONDE LA MAGGIORANZA', 'bi-state');
+      return;
+    }
+
+    // reveal / end: esito
+    const rightTxt = h.o && h.cor != null ? 'ABCD'[h.cor] + ': ' + h.o[h.cor] : '';
+    if (h.md === 'arena') {
+      if (h.res === 1) { billMsg('ESATTO!', '+1 PUNTO · SEI ' + h.rk + '° CON ' + h.sc, '#7dff8a'); }
+      else { billMsg(h.res === 0 ? 'SBAGLIATO!' : 'TEMPO SCADUTO!', 'LA GIUSTA ERA ' + rightTxt, '#ff5a5a'); }
+    } else if (h.ok) {
+      billMsg(h.res === 1 ? 'ESATTO!' : 'LA SQUADRA CI HA PRESO!', 'AVETE € ' + bfmt(h.prz) + (h.res === 0 ? ' (TU AVEVI VOTATO ALTRO)' : ''), '#7dff8a');
+    } else {
+      billMsg('SBAGLIATO!', 'LA GIUSTA ERA ' + rightTxt + '. PORTATE A CASA € ' + bfmt(h.prz || 0), '#ff5a5a');
+    }
+  }
 
   // ------------------------------------------------------------------
   // Tastiera (comodo per provare dal PC):

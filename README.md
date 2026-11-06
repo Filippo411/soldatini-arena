@@ -1,6 +1,6 @@
 # PIPPO GAME ROOM
 
-Sala giochi "da salotto" per 1–4 giocatori, in pixel art 8-bit. Lo schermo grande (PC, TV o proiettore) mostra il gioco, e ognuno usa il proprio telefono come controller inquadrando un QR code.
+Sala giochi "da salotto" per 1–8 giocatori, in pixel art 8-bit. Lo schermo grande (PC, TV o proiettore) mostra il gioco, e ognuno usa il proprio telefono come controller inquadrando un QR code.
 
 **Come funziona una serata**
 1. Si apre il sito sulla TV e ognuno inquadra il QR con il telefono. Si entra una volta sola per tutta la serata.
@@ -13,6 +13,29 @@ Sala giochi "da salotto" per 1–4 giocatori, in pixel art 8-bit. Lo schermo gra
 - ✅ **Holy Sheep**: cani pastore che radunano pecore (vedi sotto).
 - ✅ **Trova le differenze**: vedi sotto.
 - ✅ **Pippo Kart**: kart in finto 3D su piste ispirate a Monza, Spa e Monaco, con il telefono come volante (vedi sotto).
+- ✅ **The Billionaire**: quiz di cultura generale stile "Chi vuol essere milionario", in due varianti (vedi sotto).
+
+---
+
+## The Billionaire
+
+Quiz di cultura generale con 4 risposte (A-D), 144 domande in italiano su 3 livelli di difficoltà. Si risponde dal telefono, la domanda è sulla TV. Il **capo** sceglie la variante dopo aver avviato il gioco.
+
+| | **SFIDA** | **SQUADRA** |
+|---|---|---|
+| Giocatori | 2–8, tutti contro tutti | 1–8, tutti insieme |
+| Partita | 10 domande, vince chi ne indovina di più (1 punto a risposta giusta) | 15 domande verso il milione |
+| Risposta | ognuna la sua, la prima scelta resta | voto a maggioranza (si può cambiare) |
+| Aiuti | personali, uno per tipo in tutta la partita, visibili a tutti | a maggioranza dei voti, uno per tipo |
+| Sbaglio | si perde solo il punto | si torna all'ultima soglia sicura (€ 1.000 e € 32.000), niente ritiro |
+
+- **Aiuti:** 50/50, Aiuto dal pubblico, Telefonata a un amico, Cambia domanda.
+- **Tempo:** 60 secondi per domanda, oppure subito quando hanno risposto tutti.
+- **Parità in SFIDA:** a parità di punti vince chi ha risposto più in fretta alle domande giuste.
+- **Punti serata in SQUADRA:** 3 per il milione, 2 da € 32.000, 1 da € 1.000.
+- **Regole e domande:** `public/js/games/billionaire/config.js` (tempi, scala dei premi) e `questions.js` (riga: `[domanda, GIUSTA, sbagliata1, sbagliata2, sbagliata3]`).
+
+**Stanza fino a 8 giocatori:** gli altri giochi restano a 4 (`maxPlayers` nel registro). Se i telefoni collegati sono di più, la partita non parte e il capo vede un avviso.
 
 ---
 
@@ -203,6 +226,7 @@ public/
     │   ├── shooter/         SOLDATINI ARENA (config, mappa, sprite, bot, gioco, disegno)
     │   ├── sheep/           HOLY SHEEP (stessa struttura)
     │   ├── diff/            TROVA LE DIFFERENZE (scene.js è usato anche dai telefoni)
+    │   ├── billionaire/     THE BILLIONAIRE (domande, regole, disegno, sessione)
     │   ├── kart/            PIPPO KART (piste, mondo, Mode 7, piloti, gara)
     │   │   └── index.js     collegamento del gioco alla sala
     │   └── upcoming.js      giochi "PROSSIMAMENTE" nel menu

@@ -152,6 +152,35 @@
     </div>
   </section>
 
+  <!-- 3e. Controller di THE BILLIONAIRE: scelta modalità, risposte A-D e aiuti -->
+  <section id="scrBill" class="screen hidden">
+    <header class="pad-top">
+      <div class="chip bill-chip">1</div>
+      <div class="pad-name bill-name">---</div>
+      <div class="bill-round" id="billRound"></div>
+      <div class="pad-time" id="billTime"></div>
+    </header>
+    <!-- scelta della modalità (solo il capo) -->
+    <div class="bill-menu" id="billMenu">
+      <p class="note" id="billMenuNote">SCEGLI LA MODALITÀ</p>
+      <div class="bill-modes">
+        <button class="bmode" id="btnArena"><b>SFIDA</b><span>TUTTI CONTRO TUTTI</span><small>2-8 GIOCATORI · 10 DOMANDE</small></button>
+        <button class="bmode" id="btnTeam"><b>SQUADRA</b><span>VERSO IL MILIONE</span><small>TUTTI INSIEME · 15 DOMANDE</small></button>
+      </div>
+    </div>
+    <!-- domanda -->
+    <div class="bill-play hidden" id="billPlay">
+      <p class="bill-q hidden" id="billQ"></p>
+      <div class="bill-opts" id="billOpts"></div>
+      <div class="bill-side">
+        <div class="bill-info" id="billInfo"></div>
+        <div class="bill-life" id="billLife"></div>
+      </div>
+    </div>
+    <!-- esito / attesa -->
+    <div class="bill-msg hidden" id="billMsg"><div class="bm-big" id="billBig"></div><div class="bm-sub" id="billSub"></div></div>
+  </section>
+
   <!-- 4. Fine partita -->
   <section id="scrOver" class="screen hidden">
     <p class="note" id="overGame"></p>
