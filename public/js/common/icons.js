@@ -81,6 +81,18 @@
       'kBk',
       'kkk',
     ],
+    // Pecorella (Holy Sheep)
+    sheep: [
+      '..kkkkk....',
+      '.kwwswwkk..',
+      'kwwwwwwwkkk',
+      'kwswwwswkSk',
+      'kwwwwwwwkwk',
+      'kwwwswwwkkk',
+      '.kkkkkkkk..',
+      '..kS..kS...',
+      '..kk..kk...',
+    ],
     // Teschio (eliminazioni)
     skull: [
       '.kkkkk.',

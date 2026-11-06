@@ -10,9 +10,27 @@ Sala giochi "da salotto" per 1–4 giocatori, in pixel art 8-bit. Lo schermo gra
 
 **Giochi**
 - ✅ **Soldatini Arena**: sparatutto tutti contro tutti, descritto qui sotto.
-- 🔜 **Holy Sheep**: cani pastore che radunano pecore.
+- ✅ **Holy Sheep**: cani pastore che radunano pecore (vedi sotto).
 - 🔜 **Trova le differenze**
 - 🔜 **Pippo Kart**: kart su piste ispirate a Monza, Spa e Monaco, con il telefono come volante.
+
+---
+
+## Holy Sheep
+
+Ognuno è un cane pastore e ha un recinto in un angolo del pascolo, del suo colore. Dopo **2 minuti** vince chi ha più pecore nel recinto.
+
+| Sul telefono | Cosa fa |
+|---|---|
+| **Joystick** | Muovi il cane |
+| **WOOF!** | Abbai: le pecore vicine ti **seguono** per un po'. Sopra di loro compare un cuoricino del tuo colore |
+| **SCATTO** | Corsa veloce per mezzo secondo (si ricarica in 3 secondi) |
+
+- **Correre addosso** alle pecore le spaventa e le fa scappare, con lo scatto ancora di più. Serve a spingerle o a rubarle agli altri.
+- Una pecora che entra in un recinto si sistema lì. Si può però **rubare** dal recinto degli altri, abbaiando dal cancello.
+- La **pecora d'oro** vale 3 punti.
+- **Il lupo** ogni tanto entra nel pascolo e si mangia una pecora libera. **Abbaiagli contro** per mandarlo via.
+- Da soli si gioca contro 3 cani del computer.
 
 ---
 
@@ -126,6 +144,7 @@ public/
     ├── room/host.js         La "sala": stanza, menu, telefoni, classifica serata
     ├── games/
     │   ├── shooter/         SOLDATINI ARENA (config, mappa, sprite, bot, gioco, disegno)
+    │   ├── sheep/           HOLY SHEEP (stessa struttura)
     │   │   └── index.js     collegamento del gioco alla sala
     │   └── upcoming.js      giochi "PROSSIMAMENTE" nel menu
     └── controller/controller.js   Schermate e comandi del telefono

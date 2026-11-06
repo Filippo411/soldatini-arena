@@ -80,6 +80,27 @@
     <div class="flash-layer" id="flashLayer"></div>
   </section>
 
+  <!-- 3b. Controller di HOLY SHEEP: joystick + ABBAIA + SCATTO -->
+  <section id="scrSheep" class="screen hidden">
+    <header class="pad-top">
+      <div class="chip sheep-chip">1</div>
+      <div class="pad-name sheep-name">---</div>
+      <div class="sheep-count"><canvas id="sheepIcon" width="11" height="9"></canvas><span id="sheepCount">0</span></div>
+      <div class="pad-time" id="sheepTime">2:00</div>
+    </header>
+    <div class="pad-body">
+      <div class="stick-zone">
+        <div class="stick-base"><div class="stick-knob"></div></div>
+        <p class="zone-hint">MUOVITI</p>
+      </div>
+      <div class="buttons">
+        <button class="sbtn dash" id="btnDash"><span>SCATTO</span><i class="cd"></i></button>
+        <button class="sbtn bark" id="btnBark"><span>WOOF!</span><small>ABBAIA</small><i class="cd"></i></button>
+      </div>
+    </div>
+    <div class="flash-layer" id="sheepFlash"></div>
+  </section>
+
   <!-- 4. Fine partita -->
   <section id="scrOver" class="screen hidden">
     <p class="note" id="overGame"></p>

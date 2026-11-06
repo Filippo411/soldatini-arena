@@ -79,7 +79,7 @@
     onEvent(type, data) {
       if (type === 'sfx') Sfx.play(data);
       else if (type === 'announce') Sfx.announce(data);
-      else if (type === 'music') { if (data) Sfx.startMusic(); else Sfx.stopMusic(); }
+      else if (type === 'music') { if (data) Sfx.startMusic('army'); else Sfx.stopMusic(); }
       else if (type === 'buzz') { if (!data.s.isBot) this.room.buzz(data.s.slot, data.pattern); }
       else if (type === 'hud') { if (!data.isBot) this.room.hudChanged(data.slot); }
       else if (type === 'over') {

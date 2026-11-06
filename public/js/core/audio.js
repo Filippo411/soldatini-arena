@@ -107,47 +107,75 @@
   }
 
   // --- Voce dell'annunciatore (sintesi vocale del browser, se presente) ---
-  function announce(text) {
+  function announce(text, opts) {
     if (muted || !('speechSynthesis' in window)) return;
+    opts = opts || {};
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-US';
-      u.rate = 0.95;
-      u.pitch = 0.4;  // voce bassa "da arcade"
+      u.lang = opts.lang || 'en-US';
+      u.rate = opts.rate || 0.95;
+      u.pitch = opts.pitch != null ? opts.pitch : 0.4;  // voce bassa "da arcade"
       u.volume = 1;
       speechSynthesis.speak(u);
     } catch (e) { /* ignora */ }
   }
 
-  // --- Musica: giro di basso + arpeggio in loop, programmato in anticipo ---
-  let musicTimer = null, nextBeat = 0, step = 0;
-  const BPM = 150, STEP = 60 / BPM / 2; // crome
-  const BASS = [40, 40, 52, 40, 43, 43, 55, 43, 38, 38, 50, 38, 45, 45, 47, 45];
-  const LEAD = [64, 0, 67, 0, 71, 0, 67, 64, 62, 0, 67, 0, 69, 0, 71, 0, 64, 0, 67, 0, 72, 0, 71, 67, 69, 0, 67, 0, 64, 0, 62, 0];
+  // --- Musica: giro di basso + melodia in loop, programmato in anticipo ---
+  // Ogni gioco può avere il suo tema (Sfx.startMusic('farm')).
+  const THEMES = {
+    // Soldatini Arena: marcetta militare
+    army: {
+      bpm: 150, leadFrom: 32, leadWave: 'square',
+      bass: [40, 40, 52, 40, 43, 43, 55, 43, 38, 38, 50, 38, 45, 45, 47, 45],
+      lead: [64, 0, 67, 0, 71, 0, 67, 64, 62, 0, 67, 0, 69, 0, 71, 0, 64, 0, 67, 0, 72, 0, 71, 67, 69, 0, 67, 0, 64, 0, 62, 0],
+      snare: [2],
+    },
+    // Holy Sheep: polka di campagna
+    farm: {
+      bpm: 168, leadFrom: 0, leadWave: 'square',
+      bass: [48, 0, 55, 0, 48, 0, 55, 0, 53, 0, 60, 0, 55, 0, 59, 0],
+      lead: [72, 74, 76, 72, 76, 0, 79, 0, 77, 76, 74, 72, 74, 0, 67, 0, 72, 74, 76, 77, 79, 0, 79, 0, 81, 79, 77, 74, 72, 0, 0, 0],
+      snare: [1, 3],
+    },
+    // Pippo Kart: corsa
+    race: {
+      bpm: 176, leadFrom: 16, leadWave: 'square',
+      bass: [45, 45, 57, 45, 45, 57, 45, 57, 41, 41, 53, 41, 43, 43, 55, 43],
+      lead: [69, 0, 72, 76, 0, 74, 72, 0, 69, 0, 72, 74, 76, 0, 79, 0, 77, 0, 76, 74, 0, 72, 74, 0, 76, 0, 72, 0, 69, 0, 0, 0],
+      snare: [2],
+    },
+  };
+  let musicTimer = null, nextBeat = 0, step = 0, theme = THEMES.army;
 
   function scheduleMusic() {
+    const STEP = 60 / theme.bpm / 2; // crome
     while (nextBeat < ctx.currentTime + 0.2) {
       const when = nextBeat - ctx.currentTime;
-      const b = BASS[step % BASS.length];
-      tone('triangle', N(b), null, STEP * 0.9, 0.5, when, musicBus);
-      const l = LEAD[step % LEAD.length];
-      if (l && step % 64 >= 32) tone('square', N(l), null, STEP * 0.8, 0.12, when, musicBus);
-      if (step % 4 === 2) { // rullante
+      const b = theme.bass[step % theme.bass.length];
+      if (b) tone('triangle', N(b), null, STEP * 0.9, 0.5, when, musicBus);
+      const l = theme.lead[step % theme.lead.length];
+      if (l && step % 64 >= theme.leadFrom) tone(theme.leadWave, N(l), null, STEP * 0.8, 0.12, when, musicBus);
+      if (theme.snare.includes(step % 4)) { // rullante
         const t = ctx.currentTime + when;
         const src = ctx.createBufferSource(); src.buffer = noiseBuf;
-        const g = ctx.createGain(); g.gain.setValueAtTime(0.25, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+        const g = ctx.createGain(); g.gain.setValueAtTime(0.22, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
         src.connect(g); g.connect(musicBus); src.start(t, Math.random()); src.stop(t + 0.1);
       }
       nextBeat += STEP; step++;
     }
   }
-  function startMusic() {
-    if (!ctx || musicTimer) return;
+  function startMusic(name) {
+    if (!ctx) return;
+    theme = THEMES[name] || THEMES.army;
+    if (musicTimer) return;
     nextBeat = ctx.currentTime + 0.1; step = 0;
     musicTimer = setInterval(scheduleMusic, 50);
   }
   function stopMusic() { clearInterval(musicTimer); musicTimer = null; }
+
+  /** Un gioco può aggiungere i suoi effetti: Sfx.register('bark', (lib) => {...}) */
+  function register(name, fn) { SOUNDS[name] = () => fn({ tone, noise, N, ctx }); }
 
   function toggleMute() {
     muted = !muted;
@@ -156,5 +184,5 @@
     return muted;
   }
 
-  window.Sfx = { init, play, announce, startMusic, stopMusic, toggleMute, isMuted: () => muted };
+  window.Sfx = { init, play, announce, startMusic, stopMusic, toggleMute, register, isMuted: () => muted };
 })();

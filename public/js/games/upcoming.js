@@ -18,34 +18,6 @@
   const K = '#1b1b26';
 
   GAMES.register({
-    id: 'sheep',
-    title: 'HOLY SHEEP',
-    desc: 'Sei un cane pastore: abbaia e porta più pecore nel tuo recinto.',
-    players: '1-4',
-    available: false,
-    icon: art([
-      '........................',
-      '........................',
-      '........................',
-      '.......kkkkkkkkk........',
-      '.....kkwwwwwwwwwkk......',
-      '....kwwwwwwwwwwwwwk.....',
-      '...kwwwwwWwwwwWwwwwkkk..',
-      '...kwwwwwwwwwwwwwwkgggk.',
-      '..kwwwWwwwwwwWwwwwkgegk.',
-      '..kwwwwwwwwwwwwwwwkggggk',
-      '..kwwwwwwwWwwwwwwwkgggk.',
-      '...kwwwwwwwwwwwwwwwkkk..',
-      '...kwwWwwwwwwWwwwwk.....',
-      '....kwwwwwwwwwwwwk......',
-      '.....kkkkkkkkkkkk.......',
-      '......kgk.kgk.kgk.kgk...',
-      '......kgk.kgk.kgk.kgk...',
-      '......kkk.kkk.kkk.kkk...',
-    ], { k: K, w: '#ffffff', W: '#d6d6e0', g: '#3a3d48', e: '#ffffff' }),
-  });
-
-  GAMES.register({
     id: 'diff',
     title: 'TROVA LE DIFFERENZE',
     desc: 'Confronta il telefono con la TV: chi trova prima 10 differenze vince.',

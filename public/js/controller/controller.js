@@ -30,7 +30,7 @@
   // ------------------------------------------------------------------
   // Schermate
   // ------------------------------------------------------------------
-  const screens = ['scrJoin', 'scrLobby', 'scrPad', 'scrOver', 'scrMsg'];
+  const screens = ['scrJoin', 'scrLobby', 'scrPad', 'scrSheep', 'scrOver', 'scrMsg'];
   let current = 'scrJoin';
   function show(id) {
     current = id;
@@ -40,7 +40,7 @@
 
   function checkOrientation() {
     const portrait = innerHeight > innerWidth;
-    $('rotate').classList.toggle('hidden', !(portrait && current === 'scrPad'));
+    $('rotate').classList.toggle('hidden', !(portrait && GAME_SCREENS.has(current)));
   }
   addEventListener('resize', checkOrientation);
   addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
@@ -127,7 +127,8 @@
   $('btnRetry').onclick = () => { if (net) net.send({ t: 'hello', name: myName }); };
 
   // Quale schermata del telefono usa ciascun gioco
-  const LAYOUT_SCREENS = { shooter: 'scrPad' };
+  const LAYOUT_SCREENS = { shooter: 'scrPad', sheep: 'scrSheep' };
+  const GAME_SCREENS = new Set(Object.values(LAYOUT_SCREENS));
 
   function onYou(m) {
     me = m;
@@ -142,6 +143,8 @@
       const scr = LAYOUT_SCREENS[m.layout] || 'scrPad';
       $('padChip').textContent = m.slot + 1;
       $('padName').textContent = m.name;
+      for (const el of document.querySelectorAll('.sheep-chip')) el.textContent = m.slot + 1;
+      for (const el of document.querySelectorAll('.sheep-name')) el.textContent = m.name;
       if (current !== scr) resetStick();
       show(scr);
     } else if (m.phase === 'over') {
@@ -218,6 +221,7 @@
   let lastPow = undefined, lastDead = 0, lastKills = 0;
 
   function onHud(h) {
+    if (me && me.layout === 'sheep') return onSheepHud(h);
     [...ammoEl.children].forEach((el, i) => el.classList.toggle('empty', i >= h.ammo));
     ammoEl.classList.toggle('zero', h.ammo === 0);
     $('padKills').textContent = h.kills;
@@ -258,37 +262,45 @@
   // ------------------------------------------------------------------
   // Joystick virtuale (mobile: compare dove appoggi il pollice)
   // ------------------------------------------------------------------
-  const zone = $('stickZone'), base = $('stickBase'), knob = $('stickKnob');
+  // Ogni schermata di gioco ha la sua zona joystick (classe .stick-zone):
+  // gli eventi sono gli stessi, cambia solo quale zona è attiva.
+  let zone = null, base = null, knob = null;
   let stickId = null, ox = 0, oy = 0, sx = 0, sy = 0, lastSent = 0, sentX = 0, sentY = 0;
   const RADIUS = () => base.offsetWidth * 0.38;
 
   function resetStick() {
     stickId = null; sx = sy = 0;
-    knob.style.transform = 'translate(0,0)';
-    base.style.left = '30%'; base.style.top = '55%';
+    for (const z of document.querySelectorAll('.stick-zone')) {
+      z.querySelector('.stick-knob').style.transform = 'translate(0,0)';
+      const b = z.querySelector('.stick-base');
+      b.style.left = '30%'; b.style.top = '55%';
+    }
   }
 
-  zone.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    if (stickId !== null) return;
-    stickId = e.pointerId;
-    zone.setPointerCapture(e.pointerId);
-    const r = zone.getBoundingClientRect();
-    ox = e.clientX; oy = e.clientY;
-    base.style.left = (e.clientX - r.left) + 'px';
-    base.style.top = (e.clientY - r.top) + 'px';
-    moveStick(e);
-  });
-  zone.addEventListener('pointermove', (e) => { if (e.pointerId === stickId) { e.preventDefault(); moveStick(e); } });
-  const endStick = (e) => {
-    if (e.pointerId !== stickId) return;
-    stickId = null; sx = sy = 0;
-    knob.style.transform = 'translate(0,0)';
-    sendStick(0, 0, true);
-  };
-  zone.addEventListener('pointerup', endStick);
-  zone.addEventListener('pointercancel', endStick);
-  zone.addEventListener('lostpointercapture', endStick);
+  for (const z of document.querySelectorAll('.stick-zone')) {
+    z.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (stickId !== null) return;
+      zone = z; base = z.querySelector('.stick-base'); knob = z.querySelector('.stick-knob');
+      stickId = e.pointerId;
+      zone.setPointerCapture(e.pointerId);
+      const r = zone.getBoundingClientRect();
+      ox = e.clientX; oy = e.clientY;
+      base.style.left = (e.clientX - r.left) + 'px';
+      base.style.top = (e.clientY - r.top) + 'px';
+      moveStick(e);
+    });
+    z.addEventListener('pointermove', (e) => { if (e.pointerId === stickId && z === zone) { e.preventDefault(); moveStick(e); } });
+    const endStick = (e) => {
+      if (e.pointerId !== stickId || z !== zone) return;
+      stickId = null; sx = sy = 0;
+      knob.style.transform = 'translate(0,0)';
+      sendStick(0, 0, true);
+    };
+    z.addEventListener('pointerup', endStick);
+    z.addEventListener('pointercancel', endStick);
+    z.addEventListener('lostpointercapture', endStick);
+  }
 
   function moveStick(e) {
     const R = RADIUS();
@@ -320,7 +332,7 @@
   let pendingStick = false;
   setInterval(() => { if (pendingStick) sendStick(sx, sy, true); }, 35);
   // ripetizione periodica: se un messaggio si perde, il soldatino non resta "incantato"
-  setInterval(() => { if (current === 'scrPad' && net) net.send({ t: 'in', x: sentX, y: sentY }); }, 500);
+  setInterval(() => { if (GAME_SCREENS.has(current) && net) net.send({ t: 'in', x: sentX, y: sentY }); }, 500);
 
   // ------------------------------------------------------------------
   // Stick d'attacco stile Brawl Stars (SPARA e POWERUP)
@@ -424,6 +436,49 @@
   }, { passive: false });
 
   // ------------------------------------------------------------------
+  // HOLY SHEEP: pulsanti ABBAIA e SCATTO, con ricarica mostrata sul pulsante
+  // ------------------------------------------------------------------
+  const sheepCfg = { barkMax: 0.7, dashMax: 3 };
+  Icons.drawIcon($('sheepIcon').getContext('2d'), 'sheep', 0, 0, 1);
+
+  function onSheepHud(h) {
+    $('sheepCount').textContent = h.sheep;
+    const t = Math.max(0, h.time);
+    $('sheepTime').textContent = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+    if (h.barkMax) sheepCfg.barkMax = h.barkMax;
+    if (h.dashMax) sheepCfg.dashMax = h.dashMax;
+    if (h.point) { const el = $('sheepFlash'); el.className = 'flash-layer on'; setTimeout(() => { el.className = 'flash-layer'; }, 60); }
+  }
+
+  /** Pulsante semplice con ricarica: la barra scura scende mentre si ricarica */
+  function coolButton(el, msg, maxKey, vib) {
+    const cd = el.querySelector('.cd');
+    let readyAt = 0;
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      el.classList.add('pressed');
+      const now = performance.now();
+      if (now < readyAt) { buzz(8); return; }
+      send(msg);
+      buzz(vib);
+      const dur = sheepCfg[maxKey] * 1000;
+      readyAt = now + dur;
+      cd.style.transition = 'none';
+      cd.style.height = '100%';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        cd.style.transition = `height ${dur}ms linear`;
+        cd.style.height = '0%';
+      }));
+    });
+    const up = () => el.classList.remove('pressed');
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    el.addEventListener('pointerleave', up);
+  }
+  coolButton($('btnBark'), { t: 'bark' }, 'barkMax', [30, 20, 30]);
+  coolButton($('btnDash'), { t: 'dash' }, 'dashMax', 40);
+
+  // ------------------------------------------------------------------
   // Tastiera (comodo per provare dal PC):
   //   WASD = muovi · SPAZIO = spara dove cammini · IJKL = mira, rilascia per sparare · E = powerup
   // ------------------------------------------------------------------
@@ -449,14 +504,15 @@
     else if (keyAim !== null) { send({ t: 'shoot', a: r3(keyAim) }); keyAim = null; }
   }
   addEventListener('keydown', (e) => {
-    if (current !== 'scrPad' || e.repeat) return;
+    if (!GAME_SCREENS.has(current) || e.repeat) return;
     const k = e.key.toLowerCase();
-    if (k === ' ') { send({ t: 'shoot', a: null }); e.preventDefault(); return; }
-    if (k === 'e') { send({ t: 'pow', a: null, m: null }); return; }
+    const sheep = current === 'scrSheep';
+    if (k === ' ') { send(sheep ? { t: 'bark' } : { t: 'shoot', a: null }); e.preventDefault(); return; }
+    if (k === 'e') { send(sheep ? { t: 'dash' } : { t: 'pow', a: null, m: null }); return; }
     keys.add(k); keyUpdate();
   });
   addEventListener('keyup', (e) => {
-    if (current !== 'scrPad') return;
+    if (!GAME_SCREENS.has(current)) return;
     keys.delete(e.key.toLowerCase()); keyUpdate();
   });
 
