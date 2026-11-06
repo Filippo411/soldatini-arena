@@ -2,7 +2,7 @@
 body.ctrl {
   --pc: #ff3b3b;   /* colore del giocatore (impostato da JS) */
   --pcd: #a3172a;
-  position: fixed; inset: 0;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0;
   overflow: hidden;
   overscroll-behavior: none;
   touch-action: none;              /* niente zoom/scroll col dito */
@@ -15,19 +15,19 @@ body.ctrl {
 }
 
 .screen {
-  position: absolute; inset: 0;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(16px, env(safe-area-inset-left));
+  padding: 0px 16px) 0px 16px); padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(16px, env(safe-area-inset-left));
   text-align: center;
 }
 
-.title { font-size: clamp(20px, 7vmin, 40px); color: var(--yellow); margin: 0 0 4vmin; text-shadow: 3px 3px 0 #a3172a, 6px 6px 0 var(--ink); line-height: 1.1; }
+.title { font-size: 7vmin; font-size: clamp(20px, 7vmin, 40px); color: var(--yellow); margin: 0 0 4vmin; text-shadow: 3px 3px 0 #a3172a, 6px 6px 0 var(--ink); line-height: 1.1; }
 .title span { display: block; font-size: 0.55em; color: #fff; margin-top: 0.3em; text-shadow: 2px 2px 0 var(--ink); }
-.small-title { font-size: clamp(18px, 6vmin, 34px); }
+.small-title { font-size: 6vmin; font-size: clamp(18px, 6vmin, 34px); }
 
 /* --- Ingresso --- */
 #scrJoin .logo { margin-bottom: 4vmin; }
-#scrJoin .logo canvas { width: auto; height: min(26vmin, 150px); }
+#scrJoin .logo canvas { width: auto; height: 26vmin; height: min(26vmin, 150px); }
 #joinForm { display: flex; flex-direction: column; gap: 3vmin; align-items: center; touch-action: manipulation; }
 #joinForm label { font-size: 10px; color: var(--grey); display: flex; flex-direction: column; gap: 6px; align-items: center; }
 #joinForm input {
@@ -50,7 +50,7 @@ body.ctrl {
 .mini-roster li { font-size: 9px; padding: 7px 8px; background: var(--ink); border-left: 8px solid; }
 .mini-roster li.off { opacity: 0.4; }
 
-.game-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 760px; }
+.game-list { display: grid; grid-template-columns: repeat(4, min0); grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 760px; }
 .game-btn {
   position: relative;
   font-family: inherit; color: #fff; text-align: center;
@@ -70,13 +70,13 @@ body.ctrl {
 .note { font-size: 10px; color: var(--grey); line-height: 1.8; margin: 1vmin 0; }
 .note.small { font-size: 8px; }
 .big-note { font-size: 13px; color: #fff; }
-@media (orientation: portrait) { .game-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (orientation: portrait) { .game-list { grid-template-columns: repeat(2, min0); grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* --- Controller --- */
 #scrPad, #scrSheep { justify-content: stretch; align-items: stretch; padding: 0; }
 .pad-top {
   display: flex; align-items: center; gap: 12px;
-  height: 44px; padding: 0 max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
+  height: 44px; padding: 0 12px) 0 12px); padding: 0 max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
   background: var(--ink);
   border-bottom: 4px solid var(--pc);
   font-size: 12px;
@@ -122,7 +122,7 @@ body.ctrl {
 }
 /* la base a gradini sta in uno pseudo-elemento, così il pomello può uscire dal bordo */
 .pbtn::before {
-  content: ''; position: absolute; inset: 0;
+  content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
   background: rgba(27, 27, 38, 0.8);
   box-shadow: inset 0 0 0 5px #3a3d48;
   clip-path: polygon(20% 0, 80% 0, 80% 6%, 94% 6%, 94% 20%, 100% 20%, 100% 80%, 94% 80%, 94% 94%, 80% 94%, 80% 100%, 20% 100%, 20% 94%, 6% 94%, 6% 80%, 0 80%, 0 20%, 6% 20%, 6% 6%, 20% 6%);
@@ -130,12 +130,12 @@ body.ctrl {
 }
 .pbtn.aiming::before { box-shadow: inset 0 0 0 5px var(--pc); }
 .pbtn.fire {
-  right: max(22px, env(safe-area-inset-right)); bottom: 22px;
-  width: min(40vw, 176px); height: min(40vw, 176px); max-height: 58vh; max-width: 58vh;
+  right: 22px); right: max(22px, env(safe-area-inset-right)); bottom: 22px;
+  width: 40vw; width: min(40vw, 176px); height: 40vw; height: min(40vw, 176px); max-height: 58vh; max-width: 58vh;
 }
 .pbtn.pow {
-  right: calc(max(22px, env(safe-area-inset-right)) + min(40vw, 176px) + 26px); bottom: 22px;
-  width: min(25vw, 112px); height: min(25vw, 112px); max-height: 36vh; max-width: 36vh;
+  right: calc(22px) + 40vw + 26px); right: calc(max(22px, env(safe-area-inset-right)) + min(40vw, 176px) + 26px); bottom: 22px;
+  width: 25vw; width: min(25vw, 112px); height: 25vw; height: min(25vw, 112px); max-height: 36vh; max-width: 36vh;
 }
 .aknob {
   position: relative; z-index: 1;
@@ -182,15 +182,15 @@ body.ctrl {
   clip-path: polygon(20% 0, 80% 0, 80% 6%, 94% 6%, 94% 20%, 100% 20%, 100% 80%, 94% 80%, 94% 94%, 80% 94%, 80% 100%, 20% 100%, 20% 94%, 6% 94%, 6% 80%, 0 80%, 0 20%, 6% 20%, 6% 6%, 20% 6%);
 }
 .sbtn.bark {
-  right: max(22px, env(safe-area-inset-right)); bottom: 22px;
-  width: min(40vw, 176px); height: min(40vw, 176px); max-height: 58vh; max-width: 58vh;
+  right: 22px); right: max(22px, env(safe-area-inset-right)); bottom: 22px;
+  width: 40vw; width: min(40vw, 176px); height: 40vw; height: min(40vw, 176px); max-height: 58vh; max-width: 58vh;
   background: var(--pc); color: #fff; font-size: 18px; text-shadow: 2px 2px 0 var(--ink);
   box-shadow: inset -10px -10px 0 var(--pcd), inset 10px 10px 0 rgba(255,255,255,0.35);
 }
 .sbtn.bark small { font-size: 7px; text-shadow: none; }
 .sbtn.dash {
-  right: calc(max(22px, env(safe-area-inset-right)) + min(40vw, 176px) + 26px); bottom: 22px;
-  width: min(25vw, 112px); height: min(25vw, 112px); max-height: 36vh; max-width: 36vh;
+  right: calc(22px) + 40vw + 26px); right: calc(max(22px, env(safe-area-inset-right)) + min(40vw, 176px) + 26px); bottom: 22px;
+  width: 25vw; width: min(25vw, 112px); height: 25vw; height: min(25vw, 112px); max-height: 36vh; max-width: 36vh;
   background: #ffd23b; color: var(--ink); font-size: 9px;
   box-shadow: inset -6px -6px 0 #c27a12, inset 6px 6px 0 #fff1a0;
 }
@@ -205,7 +205,7 @@ body.ctrl {
 #diffCanvas { image-rendering: pixelated; touch-action: none; display: block; }
 .diff-bar {
   position: absolute; top: 0; left: 0; right: 0; height: 26px;
-  display: flex; align-items: center; gap: 10px; padding: 0 max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
+  display: flex; align-items: center; gap: 10px; padding: 0 10px) 0 10px); padding: 0 max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
   background: rgba(27,27,38,0.55); font-size: 12px; pointer-events: none;
 }
 .diff-found { color: var(--pc); font-size: 14px; }
@@ -213,7 +213,7 @@ body.ctrl {
 #scrDiff /* Pippo Kart */
 #scrKart { padding: 0; }
 .kart-select { display: flex; flex-direction: column; align-items: center; gap: 2vmin; padding: 10px; }
-.char-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.char-grid { display: grid; grid-template-columns: repeat(4, min0); grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .char-card { font-family: inherit; background: var(--ink2); border: 4px solid #3a3d48; color: #fff; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 7px; line-height: 1.4; min-width: 90px; touch-action: manipulation; }
 .char-card canvas { width: 60px; height: 60px; image-rendering: pixelated; }
 .char-card.mine { border-color: var(--pc); background: #3a2a10; }
@@ -221,7 +221,7 @@ body.ctrl {
 .track-row { display: flex; gap: 10px; }
 .track-btn { font-family: inherit; font-size: 10px; padding: 10px 14px; background: var(--ink2); color: #fff; border: 4px solid #3a3d48; touch-action: manipulation; }
 .track-btn.sel { border-color: var(--yellow); color: var(--yellow); }
-.kart-drive { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.kart-drive { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; flex-direction: column; }
 .kart-pos { font-size: 18px; color: var(--yellow); }
 .kart-lap { font-size: 12px; margin-left: 10px; }
 .kart-turbos { margin-left: auto; display: flex; gap: 5px; }
@@ -237,22 +237,22 @@ body.ctrl {
 .kbtn.steer.right { left: 15%; border-left: 4px solid var(--ink); }
 .drive-body.buttons .kbtn.brake { width: 30%; margin-left: 30%; }
 .wheel-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
-#wheel { width: min(38vh, 34vw); height: min(38vh, 34vw); image-rendering: pixelated; }
+#wheel { width: 38vh; width: min(38vh, 34vw); height: 38vh; height: min(38vh, 34vw); image-rendering: pixelated; }
 .wheel-tools { display: flex; gap: 4px; }
-#kartMotion { inset: 0; pointer-events: auto; background: rgba(27,27,38,0.9); }
-#kartDone { inset: 0; }
+#kartMotion { top: 0; right: 0; bottom: 0; left: 0; pointer-events: auto; background: rgba(27,27,38,0.9); }
+#kartDone { top: 0; right: 0; bottom: 0; left: 0; }
 .wheel-tools .btn.tiny { font-size: 7px; padding: 6px 7px; }
 
-.ko { inset: 0; }
+.ko { top: 0; right: 0; bottom: 0; left: 0; }
 #scrDiff .chip { width: 22px; height: 22px; font-size: 11px; }
 
 .ko {
-  position: absolute; inset: 44px 0 0 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: absolute; top: 44px; right: 0; bottom: 0; left: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   background: rgba(27, 27, 38, 0.6); pointer-events: none;
 }
 .ko-text { font-size: 44px; color: var(--red); text-shadow: 4px 4px 0 var(--ink); animation: blink 0.6s steps(1) infinite; }
 .ko-sub { font-size: 12px; margin-top: 14px; }
-.flash-layer { position: absolute; inset: 0; pointer-events: none; background: #fff; opacity: 0; transition: opacity 0.25s; }
+.flash-layer { position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; background: #fff; opacity: 0; transition: opacity 0.25s; }
 .flash-layer.on { opacity: 0.35; transition: none; }
 .flash-layer.hit { background: var(--red); opacity: 0.5; transition: none; }
 
@@ -264,7 +264,7 @@ body.ctrl {
 
 /* --- Avvisi --- */
 .rotate {
-  position: fixed; inset: 0; z-index: 20; background: #20152a;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 20; background: #20152a;
   display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
   font-size: 13px; line-height: 2; color: var(--yellow);
 }
@@ -281,7 +281,7 @@ body.ctrl {
 /* Telefoni bassi (orizzontale): compattiamo */
 @media (max-height: 360px) {
   .pad-top { height: 38px; font-size: 10px; }
-  .ko { inset: 38px 0 0 0; }
+  .ko { top: 38px; right: 0; bottom: 0; left: 0; }
   .stick-base { width: 130px; height: 130px; margin: -65px 0 0 -65px; }
   .title { margin-bottom: 2vmin; }
   #joinForm { gap: 2vmin; }

@@ -2,7 +2,7 @@
 body.host { overflow: hidden; }
 
 #stage {
-  position: fixed; inset: 0;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0;
   display: flex; align-items: center; justify-content: center;
   background: #120c18;
 }
@@ -13,7 +13,7 @@ body.host { overflow: hidden; }
 }
 
 .overlay {
-  position: fixed; inset: 0;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   background: rgba(18, 12, 24, 0.78);
   padding: 2vh 2vw;
@@ -21,7 +21,7 @@ body.host { overflow: hidden; }
 }
 
 .title {
-  font-size: clamp(28px, 5.5vw, 72px);
+  font-size: 5.5vw; font-size: clamp(28px, 5.5vw, 72px);
   margin: 0 0 3vh;
   color: var(--yellow);
   letter-spacing: 0.05em;
@@ -42,19 +42,19 @@ body.host { overflow: hidden; }
 .panel h2 { color: var(--yellow); font-size: 18px; margin: 0 0 2vh; }
 
 .qr-wrap { background: #fff; padding: 0; display: inline-block; line-height: 0; border: 4px solid var(--yellow); }
-#qr { width: min(26vh, 260px); height: min(26vh, 260px); image-rendering: pixelated; }
+#qr { width: 26vh; width: min(26vh, 260px); height: 26vh; height: min(26vh, 260px); image-rendering: pixelated; }
 
 .hint { color: var(--yellow); font-size: 14px; line-height: 1.6; margin: 1.6vh 0 0.8vh; }
 .small { color: var(--grey); font-size: 10px; line-height: 1.6; margin: 0.6vh 0; }
 .url { color: var(--white); font-size: 12px; margin: 0.6vh 0; word-break: break-all; }
-.code { font-size: clamp(28px, 3vw, 44px); color: var(--white); margin: 0.8vh 0 0; letter-spacing: 0.15em; text-shadow: 4px 4px 0 #a3172a; }
+.code { font-size: 3vw; font-size: clamp(28px, 3vw, 44px); color: var(--white); margin: 0.8vh 0 0; letter-spacing: 0.15em; text-shadow: 4px 4px 0 #a3172a; }
 
 #slots { list-style: none; padding: 0; margin: 0 0 2vh; text-align: left; }
 #slots li {
   display: flex; align-items: center; gap: 12px;
-  height: clamp(40px, 7vh, 60px); margin-bottom: 8px; padding: 0 12px;
+  height: 7vh; height: clamp(40px, 7vh, 60px); margin-bottom: 8px; padding: 0 12px;
   background: var(--ink2);
-  font-size: clamp(11px, 1.1vw, 16px);
+  font-size: 1.1vw; font-size: clamp(11px, 1.1vw, 16px);
   min-width: 270px;
 }
 #slots li .pts { color: var(--yellow); min-width: 4em; text-align: right; }
@@ -65,7 +65,7 @@ body.host { overflow: hidden; }
 #slots li .tag.off { color: var(--red); }
 
 #hub .logo { margin: 0 0 2.5vh; }
-#hub .logo canvas { width: auto; height: min(19vh, 200px); filter: drop-shadow(6px 6px 0 rgba(0,0,0,0.45)); }
+#hub .logo canvas { width: auto; height: 19vh; height: min(19vh, 200px); filter: drop-shadow(6px 6px 0 rgba(0,0,0,0.45)); }
 
 /* Schede dei giochi */
 .panel.games { display: flex; flex-direction: column; align-items: center; max-width: 520px; }
@@ -74,11 +74,11 @@ body.host { overflow: hidden; }
   position: relative;
   font-family: inherit; color: #fff; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; gap: 10px;
-  width: clamp(150px, 15vw, 220px); padding: 1.6vh 8px;
+  width: 15vw; width: clamp(150px, 15vw, 220px); padding: 1.6vh 8px;
   background: var(--ink2); border: 4px solid #3a3d48;
 }
-.game-card canvas { width: clamp(48px, 5vw, 72px); height: clamp(48px, 5vw, 72px); image-rendering: pixelated; }
-.game-card .gtitle { font-size: clamp(9px, 0.9vw, 12px); line-height: 1.5; }
+.game-card canvas { width: 5vw; width: clamp(48px, 5vw, 72px); height: 5vw; height: clamp(48px, 5vw, 72px); image-rendering: pixelated; }
+.game-card .gtitle { font-size: 0.9vw; font-size: clamp(9px, 0.9vw, 12px); line-height: 1.5; }
 .game-card.sel { border-color: var(--yellow); background: #3a2a10; animation: selpulse 0.6s steps(2) infinite; }
 @keyframes selpulse { 50% { border-color: #fff1a0; } }
 .game-card.soon { opacity: 0.55; }
@@ -94,16 +94,16 @@ body.host { overflow: hidden; }
 
 /* Fine partita */
 .winner {
-  font-size: clamp(40px, 8vw, 110px);
+  font-size: 8vw; font-size: clamp(40px, 8vw, 110px);
   margin: 0;
   color: var(--yellow);
   text-shadow: 5px 5px 0 #a3172a, 10px 10px 0 var(--ink);
   animation: winpop 0.6s steps(6) both;
 }
 @keyframes winpop { from { transform: scale(2.2); } to { transform: scale(1); } }
-.winner-name { font-size: clamp(18px, 3vw, 36px); margin: 2vh 0 3vh; text-shadow: 3px 3px 0 var(--ink); }
+.winner-name { font-size: 3vw; font-size: clamp(18px, 3vw, 36px); margin: 2vh 0 3vh; text-shadow: 3px 3px 0 var(--ink); }
 
-.ranking { border-collapse: separate; border-spacing: 0 8px; font-size: clamp(12px, 1.6vw, 20px); margin-bottom: 2vh; }
+.ranking { border-collapse: separate; border-spacing: 0 8px; font-size: 1.6vw; font-size: clamp(12px, 1.6vw, 20px); margin-bottom: 2vh; }
 .ranking td { padding: 12px 18px; background: var(--ink); }
 .ranking td.pos { color: var(--yellow); }
 .ranking td.sw { padding: 0; width: 14px; }

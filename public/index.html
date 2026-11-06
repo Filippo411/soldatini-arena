@@ -11,6 +11,14 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'><rect width='8' height='8' fill='%231b1b26'/><rect x='1' y='2' width='6' height='4' fill='%23ffd23b'/><rect x='2' y='3' width='1' height='1' fill='%231b1b26'/><rect x='5' y='3' width='1' height='1' fill='%23ff3b3b'/><rect x='4' y='4' width='1' height='1' fill='%232f8bff'/></svg>">
 </head>
 <body class="host">
+  <!-- Se qualcosa va storto (es. browser della TV troppo vecchio) lo mostriamo a schermo -->
+  <script>
+    window.onerror = function (msg, src, line) {
+      var d = document.getElementById('errbox');
+      if (!d) { d = document.createElement('div'); d.id = 'errbox'; d.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#a3172a;color:#fff;font:14px monospace;padding:10px;white-space:pre-wrap'; document.body.appendChild(d); }
+      d.textContent += 'ERRORE: ' + msg + ' (' + String(src || '').split('/').pop() + ':' + line + ')\nBrowser: ' + navigator.userAgent + '\n';
+    };
+  </script>
   <!-- Il gioco: canvas a bassa risoluzione ingrandito a schermo intero -->
   <div id="stage"><canvas id="game"></canvas></div>
 
@@ -66,51 +74,60 @@
     <button id="fsBtn" class="btn tiny" title="Schermo intero (F)">SCHERMO INTERO</button>
   </div>
 
-  <!-- Comuni -->
-  <script src="js/common/net.js"></script>
-  <script src="js/common/qr.js"></script>
-  <script src="js/common/icons.js"></script>
-  <script src="js/core/registry.js"></script>
-  <script src="js/core/font.js"></script>
-  <script src="js/common/logo.js"></script>
-  <script src="js/core/audio.js"></script>
-
-  <!-- Gioco: Soldatini Arena -->
-  <script src="js/games/shooter/config.js"></script>
-  <script src="js/games/shooter/map.js"></script>
-  <script src="js/games/shooter/sprites.js"></script>
-  <script src="js/games/shooter/bots.js"></script>
-  <script src="js/games/shooter/game.js"></script>
-  <script src="js/games/shooter/render.js"></script>
-  <script src="js/games/shooter/index.js"></script>
-
-  <!-- Gioco: Holy Sheep -->
-  <script src="js/games/sheep/config.js"></script>
-  <script src="js/games/sheep/map.js"></script>
-  <script src="js/games/sheep/art.js"></script>
-  <script src="js/games/sheep/bots.js"></script>
-  <script src="js/games/sheep/game.js"></script>
-  <script src="js/games/sheep/render.js"></script>
-  <script src="js/games/sheep/index.js"></script>
-
-  <!-- Gioco: Trova le differenze -->
-  <script src="js/games/diff/scene.js"></script>
-  <script src="js/games/diff/game.js"></script>
-  <script src="js/games/diff/index.js"></script>
-
-  <!-- Gioco: Pippo Kart -->
-  <script src="js/games/kart/chars.js"></script>
-  <script src="js/games/kart/tracks.js"></script>
-  <script src="js/games/kart/world.js"></script>
-  <script src="js/games/kart/art.js"></script>
-  <script src="js/games/kart/game.js"></script>
-  <script src="js/games/kart/render.js"></script>
-  <script src="js/games/kart/index.js"></script>
-
-  <!-- Giochi in arrivo -->
-  <script src="js/games/upcoming.js"></script>
-
-  <!-- Regia della sala -->
-  <script src="js/room/host.js"></script>
+  <!--
+    Caricamento degli script.
+    I browser moderni usano i file sorgente in js/. I browser vecchi (molte smart TV)
+    ricevono legacy/host.js, la stessa cosa tradotta in JavaScript "vecchio stile"
+    (si rigenera con: node tools/build-legacy.js). Con ?legacy=1 si forza la versione vecchia.
+  -->
+  <script>
+    var HOST_SCRIPTS = [
+      'js/common/net.js',
+      'js/common/qr.js',
+      'js/common/icons.js',
+      'js/core/registry.js',
+      'js/core/font.js',
+      'js/common/logo.js',
+      'js/core/audio.js',
+      'js/games/shooter/config.js',
+      'js/games/shooter/map.js',
+      'js/games/shooter/sprites.js',
+      'js/games/shooter/bots.js',
+      'js/games/shooter/game.js',
+      'js/games/shooter/render.js',
+      'js/games/shooter/index.js',
+      'js/games/sheep/config.js',
+      'js/games/sheep/map.js',
+      'js/games/sheep/art.js',
+      'js/games/sheep/bots.js',
+      'js/games/sheep/game.js',
+      'js/games/sheep/render.js',
+      'js/games/sheep/index.js',
+      'js/games/diff/scene.js',
+      'js/games/diff/game.js',
+      'js/games/diff/index.js',
+      'js/games/kart/chars.js',
+      'js/games/kart/tracks.js',
+      'js/games/kart/world.js',
+      'js/games/kart/art.js',
+      'js/games/kart/game.js',
+      'js/games/kart/render.js',
+      'js/games/kart/index.js',
+      'js/games/upcoming.js',
+      'js/room/host.js'
+    ];
+    (function () {
+      var modern = false;
+      try { new Function('class A {}; let f = (x) => x; const { b } = { b: 1 }; async function g() { await 1; } return `${f(1)}`;'); modern = true; } catch (e) {}
+      if (/[?&]legacy=1/.test(location.search)) modern = false;
+      var list = modern ? HOST_SCRIPTS : ['legacy/host.js'];
+      for (var i = 0; i < list.length; i++) {
+        var el = document.createElement('script');
+        el.src = list[i];
+        el.async = false;            // rispetta l'ordine
+        document.body.appendChild(el);
+      }
+    })();
+  </script>
 </body>
 </html>

@@ -175,6 +175,16 @@ Alla fine avrai un indirizzo tipo `https://pippo-game-room.onrender.com` da apri
 
 ---
 
+## Smart TV
+
+Il browser di molte smart TV è vecchio. La pagina se ne accorge da sola e carica una versione "compatibile" del gioco (`public/legacy/host.js`). Per provarla da un PC aggiungi `?legacy=1` all'indirizzo.
+
+- Se sulla TV compare un **riquadro rosso con un ERRORE**, fai una foto e mandala: c'è scritto cosa non va e che browser ha la TV.
+- Se la TV resta su una pagina bianca o "caricamento", aspetta un minuto e ricarica: probabilmente Render si stava riaccendendo.
+- Se il browser della TV è troppo lento o limitato, la soluzione più affidabile resta un **PC collegato con il cavo HDMI**. In alternativa va bene una **Fire TV Stick / Chromecast con Google TV** con Chrome o Silk.
+
+*(Per chi modifica il codice: dopo ogni modifica allo schermo grande va rigenerata la versione compatibile con `npm i -g typescript && node tools/build-legacy.js`.)*
+
 ## Come è fatto (per i curiosi)
 
 ```
