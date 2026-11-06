@@ -29,6 +29,7 @@
     STICK_DEADZONE: 0.2, // joystick: sotto questa spinta il soldatino sta fermo
     STICK_FULL: 0.65,    // joystick: da questa spinta in su si va a piena velocità
     AIM_RANGE: 90,       // lunghezza del mirino laser mentre si mira
+    AUTO_AIM_RANGE: 170, // tocco su SPARA: mira automatica sull'avversario entro questa distanza
     HIT_R: 6,           // raggio entro cui un proiettile colpisce
 
     // --- Armi ---

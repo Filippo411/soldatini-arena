@@ -29,9 +29,9 @@ Comandi in stile Brawl Stars: un joystick per muoversi a sinistra, due "stick d'
 | Sul telefono | Cosa fa |
 |---|---|
 | **Joystick** (metà sinistra: appoggia il pollice dove vuoi) | Muove il soldatino in tutte le direzioni |
-| **SPARA: tocco veloce** | Un colpo nella direzione in cui stai camminando |
-| **SPARA: tieni premuto senza muovere il dito** | Raffica nella direzione in cui cammini |
-| **SPARA: trascina** | Mira: sullo schermo grande compare un mirino laser. **Rilascia** per sparare lì. Puoi mirare in una direzione e intanto camminare in un'altra |
+| **SPARA: tocco veloce** | **Mira automatica**: il colpo parte verso l'avversario visibile più vicino (se nessuno è a tiro, dove stai guardando) |
+| **SPARA: tieni premuto senza muovere il dito** | Raffica, sempre con mira automatica |
+| **SPARA: trascina** | Mira manuale: sullo schermo grande compare un mirino laser. **Rilascia** per sparare lì. Puoi mirare in una direzione e intanto camminare in un'altra |
 | **POWERUP: tocco** | Usa il powerup (la granata va dove cammini) |
 | **POWERUP: trascina** (con la granata) | Mostra traiettoria e area dell'esplosione: più trascini lontano, più lontano la lanci. Rilascia per lanciare |
 | Riporta il dito al centro prima di rilasciare | Annulla il colpo |

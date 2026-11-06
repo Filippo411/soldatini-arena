@@ -335,7 +335,7 @@
     let id = null, aiming = false, cancel = false, holding = false, holdTimer = null;
     let cx = 0, cy = 0, ang = 0, mag = 0, lastSend = 0;
     const R = () => el.offsetWidth * 0.75;         // distanza massima di trascinamento
-    const TH = () => Math.max(14, el.offsetWidth * 0.16); // soglia per iniziare a mirare
+    const TH = () => Math.max(24, el.offsetWidth * 0.3); // soglia per iniziare a mirare (alta: i tocchi restano tocchi)
 
     el.addEventListener('pointerdown', (e) => {
       e.preventDefault();

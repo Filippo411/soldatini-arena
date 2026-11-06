@@ -220,11 +220,21 @@
       // --- Sparo ---
       // fireTap: un tocco rapidissimo sul telefono spara comunque un colpo
       // shot: colpo singolo dallo stick di mira (angolo = dove mirava, null = dove cammina)
+      // Tocco semplice o raffica (senza trascinare): MIRA AUTOMATICA sull'avversario
+      // visibile più vicino; se non c'è nessuno a tiro si spara dove si guarda.
       if (inp.shot && s.cooldown <= 0) {
-        if (inp.shot.a != null) { s.face = inp.shot.a; s.faceLockT = 0.35; }
+        const a = inp.shot.a != null ? inp.shot.a : this.autoAim(s);
+        if (a != null) { s.face = a; s.faceLockT = 0.35; }
         inp.shot = null;
         this.shoot(s);
-      } else if ((inp.fire || inp.fireTap) && s.cooldown <= 0) { inp.fireTap = false; this.shoot(s); }
+      } else if ((inp.fire || inp.fireTap) && s.cooldown <= 0) {
+        inp.fireTap = false;
+        if (!s.isBot && inp.aimStick == null) {
+          const a = this.autoAim(s);
+          if (a != null) { s.face = a; s.faceLockT = 0.35; }
+        }
+        this.shoot(s);
+      }
 
       // --- Powerup ---
       if (inp.pow) {
@@ -294,6 +304,22 @@
           this.moveSoldier(b, nx * push, ny * push);
         }
       }
+    }
+
+    /** Angolo verso l'avversario visibile più vicino (null se nessuno a tiro) */
+    autoAim(s) {
+      let best = null, bd = C.AUTO_AIM_RANGE;
+      for (const o of this.soldiers) {
+        if (o === s || o.dead || o.protectT > 0) continue;
+        const d = Math.hypot(o.x - s.x, o.y - s.y);
+        if (d < bd && this.map.lineOfSight(s.x, s.y - 2, o.x, o.y - 2)) { bd = d; best = o; }
+      }
+      if (!best) return null;
+      // piccolo anticipo sul bersaglio in movimento
+      const lead = bd / C.BULLET_SPEED;
+      const vx = best.moving ? Math.cos(best.moveFace || 0) * C.SPEED * 0.5 : 0;
+      const vy = best.moving ? Math.sin(best.moveFace || 0) * C.SPEED * 0.5 : 0;
+      return Math.atan2(best.y + vy * lead - s.y, best.x + vx * lead - s.x);
     }
 
     shoot(s) {
