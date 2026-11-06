@@ -11,8 +11,20 @@ Sala giochi "da salotto" per 1–4 giocatori, in pixel art 8-bit. Lo schermo gra
 **Giochi**
 - ✅ **Soldatini Arena**: sparatutto tutti contro tutti, descritto qui sotto.
 - ✅ **Holy Sheep**: cani pastore che radunano pecore (vedi sotto).
-- 🔜 **Trova le differenze**
+- ✅ **Trova le differenze**: vedi sotto.
 - 🔜 **Pippo Kart**: kart su piste ispirate a Monza, Spa e Monaco, con il telefono come volante.
+
+---
+
+## Trova le differenze
+
+Sulla TV c'è una scena in pixel art (fattoria, spiaggia o città di notte, ogni volta diversa). Sul telefono di ognuno c'è la stessa scena con **10 differenze**: un colore cambiato, un oggetto sparito o aggiunto, un dettaglio diverso, un oggetto girato.
+
+- **Tocca sul telefono** dove vedi una differenza. Se è giusta compare un cerchio del tuo colore, che vedi solo tu.
+- **Tocco sbagliato:** il telefono si blocca per 2 secondi, così nessuno tocca a caso.
+- Vince chi le trova **tutte e 10** per primo, oppure chi ne ha di più dopo 3 minuti.
+- Ogni tanto la TV mostra un **aiutino**: un cerchio lampeggiante attorno a una zona dove c'è una differenza che quasi nessuno ha trovato.
+- A fine partita la TV e i telefoni mostrano tutte le differenze.
 
 ---
 
@@ -145,6 +157,7 @@ public/
     ├── games/
     │   ├── shooter/         SOLDATINI ARENA (config, mappa, sprite, bot, gioco, disegno)
     │   ├── sheep/           HOLY SHEEP (stessa struttura)
+    │   ├── diff/            TROVA LE DIFFERENZE (scene.js è usato anche dai telefoni)
     │   │   └── index.js     collegamento del gioco alla sala
     │   └── upcoming.js      giochi "PROSSIMAMENTE" nel menu
     └── controller/controller.js   Schermate e comandi del telefono

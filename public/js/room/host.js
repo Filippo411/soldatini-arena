@@ -35,6 +35,8 @@
   const room = {
     code: null,
     key: null,
+    /** messaggio a un telefono (es. la scena di Trova le differenze) */
+    send(slot, d) { const s = slots[slot]; if (s && s.connected) toPhone(s.cid, d); },
     /** vibrazione sul telefono di uno slot */
     buzz(slot, pattern) { const s = slots[slot]; if (s) toPhone(s.cid, { t: 'buzz', p: pattern }); },
     /** l'HUD di uno slot è cambiato: lo rimandiamo al telefono */

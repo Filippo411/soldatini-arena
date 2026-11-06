@@ -18,36 +18,6 @@
   const K = '#1b1b26';
 
   GAMES.register({
-    id: 'diff',
-    title: 'TROVA LE DIFFERENZE',
-    desc: 'Confronta il telefono con la TV: chi trova prima 10 differenze vince.',
-    players: '1-4',
-    available: false,
-    icon: art([
-      '........................',
-      '.......kkkkkkk..........',
-      '.....kkcccccccckk.......',
-      '....kccwwcccccccck......',
-      '...kccwwcccccccccck.....',
-      '...kcwwccccccccccck.....',
-      '..kccwcccccccccccccck...',
-      '..kccccccccccccccccck...',
-      '..kccccccccccccccccck...',
-      '..kccccccccccccccccck...',
-      '...kccccccccccccccck....',
-      '...kcccccccccccccck.....',
-      '....kccccccccccccck.....',
-      '.....kkcccccccckkbb.....',
-      '.......kkkkkkkk.kbbb....',
-      '.................kbbb...',
-      '..................kbbb..',
-      '...................kbbb.',
-      '....................kbbk',
-      '.....................kk.',
-    ], { k: K, c: '#5ff2ff', w: '#ffffff', b: '#c27a3a' }),
-  });
-
-  GAMES.register({
     id: 'kart',
     title: 'PIPPO KART',
     desc: 'Gare di kart su piste ispirate a Monza, Spa e Monaco. Il telefono fa da volante!',

@@ -101,6 +101,18 @@
     <div class="flash-layer" id="sheepFlash"></div>
   </section>
 
+  <!-- 3c. Controller di TROVA LE DIFFERENZE: la scena modificata da toccare -->
+  <section id="scrDiff" class="screen hidden">
+    <canvas id="diffCanvas" width="320" height="180"></canvas>
+    <div class="diff-bar">
+      <div class="chip diff-chip">1</div>
+      <div class="diff-found"><span id="diffFound">0</span>/<span id="diffTotal">10</span></div>
+      <div class="pad-time" id="diffTime">3:00</div>
+    </div>
+    <div class="ko hidden" id="diffLock"><div class="ko-text">OPS!</div><div class="ko-sub">ASPETTA 2 SECONDI...</div></div>
+    <div class="flash-layer" id="diffFlash"></div>
+  </section>
+
   <!-- 4. Fine partita -->
   <section id="scrOver" class="screen hidden">
     <p class="note" id="overGame"></p>
@@ -133,6 +145,7 @@
   <script src="js/common/icons.js"></script>
   <script src="js/core/font.js"></script>
   <script src="js/common/logo.js"></script>
+  <script src="js/games/diff/scene.js"></script>
   <script src="js/controller/controller.js"></script>
 </body>
 </html>

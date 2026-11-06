@@ -30,7 +30,7 @@
   // ------------------------------------------------------------------
   // Schermate
   // ------------------------------------------------------------------
-  const screens = ['scrJoin', 'scrLobby', 'scrPad', 'scrSheep', 'scrOver', 'scrMsg'];
+  const screens = ['scrJoin', 'scrLobby', 'scrPad', 'scrSheep', 'scrDiff', 'scrOver', 'scrMsg'];
   let current = 'scrJoin';
   function show(id) {
     current = id;
@@ -115,6 +115,7 @@
       case 'you': onYou(m); break;
       case 'st': onHud(m); break;
       case 'buzz': buzz(m.p); break;
+      case 'scene': diffScene = m; drawDiff(); break;
       default:
     }
   }
@@ -127,7 +128,7 @@
   $('btnRetry').onclick = () => { if (net) net.send({ t: 'hello', name: myName }); };
 
   // Quale schermata del telefono usa ciascun gioco
-  const LAYOUT_SCREENS = { shooter: 'scrPad', sheep: 'scrSheep' };
+  const LAYOUT_SCREENS = { shooter: 'scrPad', sheep: 'scrSheep', diff: 'scrDiff' };
   const GAME_SCREENS = new Set(Object.values(LAYOUT_SCREENS));
 
   function onYou(m) {
@@ -143,7 +144,7 @@
       const scr = LAYOUT_SCREENS[m.layout] || 'scrPad';
       $('padChip').textContent = m.slot + 1;
       $('padName').textContent = m.name;
-      for (const el of document.querySelectorAll('.sheep-chip')) el.textContent = m.slot + 1;
+      for (const el of document.querySelectorAll('.sheep-chip, .diff-chip')) el.textContent = m.slot + 1;
       for (const el of document.querySelectorAll('.sheep-name')) el.textContent = m.name;
       if (current !== scr) resetStick();
       show(scr);
@@ -222,6 +223,7 @@
 
   function onHud(h) {
     if (me && me.layout === 'sheep') return onSheepHud(h);
+    if (me && me.layout === 'diff') return onDiffHud(h);
     [...ammoEl.children].forEach((el, i) => el.classList.toggle('empty', i >= h.ammo));
     ammoEl.classList.toggle('zero', h.ammo === 0);
     $('padKills').textContent = h.kills;
@@ -477,6 +479,66 @@
   }
   coolButton($('btnBark'), { t: 'bark' }, 'barkMax', [30, 20, 30]);
   coolButton($('btnDash'), { t: 'dash' }, 'dashMax', 40);
+
+  // ------------------------------------------------------------------
+  // TROVA LE DIFFERENZE: la scena modificata, da toccare dove si vede una differenza
+  // ------------------------------------------------------------------
+  let diffScene = null, diffHud = null, diffTaps = [];
+  const dcv = $('diffCanvas'), dctx = dcv.getContext('2d');
+
+  function fitDiff() {
+    // la scena (320x180) riempie lo schermo mantenendo le proporzioni
+    const s = Math.min(innerWidth / DiffScene.SW, innerHeight / DiffScene.SH);
+    dcv.style.width = Math.floor(DiffScene.SW * s) + 'px';
+    dcv.style.height = Math.floor(DiffScene.SH * s) + 'px';
+  }
+  addEventListener('resize', fitDiff);
+  fitDiff();
+
+  function circle(x, y, r, c) {
+    dctx.fillStyle = c;
+    const n = Math.ceil(r * 6);
+    for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; dctx.fillRect(Math.round(x + Math.cos(a) * r), Math.round(y + Math.sin(a) * r), 1, 1); }
+  }
+
+  function drawDiff() {
+    if (!diffScene) return;
+    DiffScene.draw(dctx, diffScene, 0, 0);
+    const col = (me && me.color) || '#ffd23b';
+    if (diffHud) {
+      if (diffHud.all) for (const [x, y, r] of diffHud.all) { circle(x, y, r, '#ff3b3b'); }
+      for (const [x, y, r] of diffHud.found) { circle(x, y, r, col); circle(x, y, r + 1, '#ffffff'); circle(x, y, r - 1, col); }
+    }
+    // piccoli segni dei tocchi recenti
+    const now = performance.now();
+    diffTaps = diffTaps.filter((t) => now - t.at < 600);
+    for (const t of diffTaps) { dctx.fillStyle = '#ffffff'; dctx.fillRect(Math.round(t.x) - 1, Math.round(t.y), 3, 1); dctx.fillRect(Math.round(t.x), Math.round(t.y) - 1, 1, 3); }
+  }
+  setInterval(() => { if (current === 'scrDiff' && diffTaps.length) drawDiff(); }, 100);
+
+  function onDiffHud(h) {
+    diffHud = h;
+    if (!diffScene || diffScene.id !== h.sceneId) { send({ t: 'needscene' }); }
+    const prev = +$('diffFound').textContent;
+    $('diffFound').textContent = h.found.length;
+    $('diffTotal').textContent = h.total;
+    const t = Math.max(0, h.time);
+    $('diffTime').textContent = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+    $('diffLock').classList.toggle('hidden', !h.lock);
+    if (h.found.length > prev) { const el = $('diffFlash'); el.className = 'flash-layer on'; setTimeout(() => { el.className = 'flash-layer'; }, 80); }
+    drawDiff();
+  }
+
+  dcv.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (!diffScene || (diffHud && diffHud.lock)) return;
+    const r = dcv.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width * DiffScene.SW;
+    const y = (e.clientY - r.top) / r.height * DiffScene.SH;
+    diffTaps.push({ x, y, at: performance.now() });
+    send({ t: 'tap', x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 });
+    drawDiff();
+  });
 
   // ------------------------------------------------------------------
   // Tastiera (comodo per provare dal PC):

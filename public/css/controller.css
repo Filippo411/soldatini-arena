@@ -200,6 +200,19 @@ body.ctrl {
 .sheep-count { display: flex; align-items: center; gap: 8px; font-size: 16px; margin-left: auto; }
 #sheepIcon { width: 33px; height: 27px; image-rendering: pixelated; }
 
+/* Trova le differenze: immagine a tutto schermo */
+#scrDiff { padding: 0; background: #120c18; }
+#diffCanvas { image-rendering: pixelated; touch-action: none; display: block; }
+.diff-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 26px;
+  display: flex; align-items: center; gap: 10px; padding: 0 max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
+  background: rgba(27,27,38,0.55); font-size: 12px; pointer-events: none;
+}
+.diff-found { color: var(--pc); font-size: 14px; }
+.diff-bar .pad-time { margin-left: auto; }
+#scrDiff .ko { inset: 0; }
+#scrDiff .chip { width: 22px; height: 22px; font-size: 11px; }
+
 .ko {
   position: absolute; inset: 44px 0 0 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   background: rgba(27, 27, 38, 0.6); pointer-events: none;
