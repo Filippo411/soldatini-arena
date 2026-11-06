@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#1b1b26">
-  <title>Soldatini Arena — Controller</title>
+  <title>Pippo Game Room</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
   <link rel="stylesheet" href="css/common.css">
@@ -18,7 +18,7 @@
 
   <!-- 1. Ingresso: nome (e codice stanza se non arriva dal QR) -->
   <section id="scrJoin" class="screen">
-    <h1 class="title">SOLDATINI<span>ARENA</span></h1>
+    <h1 class="title">PIPPO<span>GAME ROOM</span></h1>
     <form id="joinForm" autocomplete="off">
       <label>CODICE STANZA
         <input id="inRoom" maxlength="4" autocapitalize="characters" spellcheck="false" placeholder="ABCD">
@@ -31,19 +31,23 @@
     <p class="err" id="joinErr"></p>
   </section>
 
-  <!-- 2. Lobby -->
+  <!-- 2. Menu della sala: il capo sceglie il gioco -->
   <section id="scrLobby" class="screen hidden">
-    <div class="me-card" id="meCard">
-      <canvas id="meSprite" width="12" height="17"></canvas>
-      <div>
-        <div class="me-num" id="meNum">GIOCATORE 1</div>
-        <div class="me-name" id="meName">---</div>
+    <div class="hub-top">
+      <div class="me-card" id="meCard">
+        <div class="chip big-chip" id="meNum">1</div>
+        <div>
+          <div class="me-num">SEI IL GIOCATORE</div>
+          <div class="me-name" id="meName">---</div>
+        </div>
       </div>
+      <ul class="mini-roster" id="roster"></ul>
     </div>
-    <ul class="mini-roster" id="roster"></ul>
-    <button class="btn big hidden" id="btnStart">INIZIA!</button>
-    <p class="note" id="lobbyNote">ASPETTA CHE IL CAPO AVVII LA PARTITA...</p>
-    <p class="note small">GUARDA LO SCHERMO GRANDE · TIENI IL TELEFONO IN ORIZZONTALE</p>
+    <div class="game-list" id="gameList"></div>
+    <div class="hub-bottom">
+      <p class="note" id="lobbyNote">IL CAPO STA SCEGLIENDO IL GIOCO...</p>
+      <button class="btn big hidden" id="btnStart">GIOCA!</button>
+    </div>
   </section>
 
   <!-- 3. Controller di gioco -->
@@ -78,12 +82,13 @@
 
   <!-- 4. Fine partita -->
   <section id="scrOver" class="screen hidden">
+    <p class="note" id="overGame"></p>
     <h1 class="title small-title" id="overTitle">WINNER!</h1>
     <p class="over-win" id="overWin"></p>
     <ol class="over-rank" id="overRank"></ol>
     <div class="row">
-      <button class="btn big hidden" id="btnAgain">NUOVA PARTITA</button>
-      <button class="btn hidden" id="btnLobby">LOBBY</button>
+      <button class="btn big hidden" id="btnAgain">RIGIOCA</button>
+      <button class="btn hidden" id="btnLobby">MENU GIOCHI</button>
     </div>
     <p class="note" id="overNote">IL CAPO SCEGLIE SE RIGIOCARE...</p>
   </section>

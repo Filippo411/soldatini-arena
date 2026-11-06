@@ -52,12 +52,7 @@
     POWER_RESPAWN: 9,
 
     // --- Giocatori: colori ben distinguibili da lontano ---
-    PLAYERS: [
-      { name: 'ROSSO',  color: '#ff3b3b', dark: '#a3172a', light: '#ff9c8a' },
-      { name: 'BLU',    color: '#2f8bff', dark: '#1a3fa8', light: '#9ccbff' },
-      { name: 'GIALLO', color: '#ffd23b', dark: '#c27a12', light: '#fff1a0' },
-      { name: 'VERDE',  color: '#3fe05a', dark: '#16843a', light: '#a6ffad' },
-    ],
+    PLAYERS: ROOM.PLAYERS,   // colori comuni a tutti i giochi (js/core/registry.js)
     BOT_NAMES: ['SGT.BRUNO', 'CAP.TONI', 'CPL.GINO', 'SGT.RITA', 'CPL.NINA', 'CAP.OSCAR'],
 
     POWER_TYPES: ['flash', 'grenade', 'shield'],

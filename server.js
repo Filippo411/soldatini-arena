@@ -1,5 +1,5 @@
 /**
- * SOLDATINI ARENA — server
+ * PIPPO GAME ROOM — server
  * ------------------------------------------------------------
  * Un server Node.js SENZA dipendenze esterne (niente npm install).
  * Fa due cose sole:
@@ -319,7 +319,7 @@ setInterval(() => {
 
 server.listen(PORT, () => {
   console.log('');
-  console.log('  SOLDATINI ARENA è acceso!');
+  console.log('  PIPPO GAME ROOM è acceso!');
   console.log(`  Schermo grande:  http://localhost:${PORT}`);
   for (const ip of lanAddresses()) console.log(`  Dalla Wi-Fi:     http://${ip}:${PORT}`);
   console.log('');

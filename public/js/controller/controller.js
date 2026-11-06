@@ -126,40 +126,28 @@
   }
   $('btnRetry').onclick = () => { if (net) net.send({ t: 'hello', name: myName }); };
 
+  // Quale schermata del telefono usa ciascun gioco
+  const LAYOUT_SCREENS = { shooter: 'scrPad' };
+
   function onYou(m) {
     me = m;
     myName = m.name;
     document.body.style.setProperty('--pc', m.color);
     document.body.style.setProperty('--pcd', m.dark);
-    drawMe(m.slot);
 
-    if (m.phase === 'lobby') {
-      $('meNum').textContent = 'GIOCATORE ' + (m.slot + 1);
-      $('meName').textContent = m.name;
-      const ul = $('roster');
-      ul.innerHTML = '';
-      for (const p of m.players) {
-        const li = document.createElement('li');
-        li.textContent = p.name;
-        li.style.borderColor = p.color;
-        if (!p.on) li.className = 'off';
-        ul.appendChild(li);
-      }
-      $('btnStart').classList.toggle('hidden', !m.lead);
-      $('btnStart').textContent = m.players.length === 1 ? 'INIZIA (VS BOT)' : 'INIZIA!';
-      $('lobbyNote').textContent = m.lead
-        ? (m.players.length === 1 ? 'SEI DA SOLO: SFIDERAI 3 BOT. OPPURE ASPETTA GLI AMICI!' : 'SEI IL CAPO: PREMI INIZIA QUANDO CI SIETE TUTTI')
-        : 'ASPETTA CHE IL CAPO AVVII LA PARTITA...';
-      show('scrLobby');
+    if (m.phase === 'hub') {
+      showHub(m);
       resetStick();
     } else if (m.phase === 'game') {
+      const scr = LAYOUT_SCREENS[m.layout] || 'scrPad';
       $('padChip').textContent = m.slot + 1;
       $('padName').textContent = m.name;
-      if (current !== 'scrPad') { resetStick(); }
-      show('scrPad');
+      if (current !== scr) resetStick();
+      show(scr);
     } else if (m.phase === 'over') {
       resetStick();
       sendStick(0, 0, true);
+      $('overGame').textContent = m.gameTitle || '';
       if (m.rank) {
         const w = m.rank[0];
         const iWon = w && w.slot === m.slot && !w.bot;
@@ -170,30 +158,55 @@
         ol.innerHTML = '';
         m.rank.forEach((r, i) => {
           const li = document.createElement('li');
-          li.textContent = `${i + 1}° ${r.name}  ${r.kills} ELIM.`;
+          li.textContent = `${i + 1}° ${r.name}  ${r.detail}${r.pts ? '  +' + r.pts + ' PT' : ''}`;
           if (r.slot === m.slot && !r.bot) li.className = 'me';
           ol.appendChild(li);
         });
-        if (iWon) buzz([100, 80, 100, 80, 300]);
+        if (iWon && !overBuzzed) { overBuzzed = true; buzz([100, 80, 100, 80, 300]); }
       }
       $('btnAgain').classList.toggle('hidden', !m.lead);
       $('btnLobby').classList.toggle('hidden', !m.lead);
-      $('overNote').textContent = m.lead ? 'SEI IL CAPO: RIGIOCHIAMO?' : 'IL CAPO SCEGLIE SE RIGIOCARE...';
+      $('overNote').textContent = m.lead ? 'SEI IL CAPO: RIGIOCHIAMO O CAMBIAMO GIOCO?' : 'IL CAPO SCEGLIE COSA FARE...';
       show('scrOver');
     }
+    if (m.phase !== 'over') overBuzzed = false;
   }
+  let overBuzzed = false;
 
-  // Soldatino nel colore del giocatore (stessa pixel art dello schermo grande)
-  const BODY = [
-    '...kkkkkk...', '..kHHHHhhk..', '.kHHhhhhhhk.', '.khhhhhhhdk.', 'kdhhhhhhhhdk', 'kkcccccccckk',
-    '.ksssswkssk.', '.kSsssssssk.', '..kSSsssSk..', '..kcccccck..', '.kCcccccccCk', '.kCccCcccCk.',
-    '..kPPPPPPk..', '..kppk.kppk.', '..kpPk.kpPk.', '..kbbbkkbbbk', '..kkkk.kkkk.',
-  ];
-  function drawMe(slot) {
-    const pal = { k: '#1b1b26', H: '#9fb04f', h: '#66762f', d: '#3f4a1d', s: '#ffc690', S: '#d58a5c', w: '#fff', p: '#c2a463', P: '#86703c', b: '#5a3a22', c: me.color, C: me.dark };
-    const g = $('meSprite').getContext('2d');
-    g.clearRect(0, 0, 12, 17);
-    BODY.forEach((row, y) => [...row].forEach((ch, x) => { if (pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
+  /** Menu della sala sul telefono: classifica della serata + scelta del gioco (solo il capo) */
+  function showHub(m) {
+    $('meNum').textContent = m.slot + 1;
+    $('meName').textContent = m.name;
+    const ul = $('roster');
+    ul.innerHTML = '';
+    m.players.slice().sort((a, b) => b.pts - a.pts).forEach((p) => {
+      const li = document.createElement('li');
+      li.textContent = `${p.name} ${p.pts}PT`;
+      li.style.borderColor = p.color;
+      if (!p.on) li.className = 'off';
+      ul.appendChild(li);
+    });
+
+    const list = $('gameList');
+    list.innerHTML = '';
+    for (const g of m.games) {
+      const b = document.createElement('button');
+      b.className = 'game-btn' + (g.id === m.game ? ' sel' : '') + (g.available ? '' : ' soon');
+      b.innerHTML = `<span class="gt"></span><span class="gp"></span>`;
+      b.querySelector('.gt').textContent = g.title;
+      b.querySelector('.gp').textContent = g.available ? g.players : 'PROSSIMAMENTE';
+      b.disabled = !m.lead;
+      b.onclick = () => { send({ t: 'pick', game: g.id }); buzz(10); };
+      list.appendChild(b);
+    }
+    const sel = m.games.find((g) => g.id === m.game);
+    $('btnStart').classList.toggle('hidden', !m.lead);
+    $('btnStart').disabled = !(sel && sel.available);
+    $('btnStart').textContent = sel && sel.available ? 'GIOCA A ' + sel.title + '!' : 'IN ARRIVO...';
+    $('lobbyNote').textContent = m.lead
+      ? 'SEI IL CAPO: SCEGLI IL GIOCO'
+      : 'IL CAPO STA SCEGLIENDO... (' + (sel ? sel.title : '') + ')';
+    show('scrLobby');
   }
 
   // ------------------------------------------------------------------
@@ -395,7 +408,7 @@
     onRelease: (a, m) => send({ t: 'pow', a: r3(a), m: r3(m) }),
   });
 
-  $('btnStart').onclick = () => { goFullscreen(); net && net.send({ t: 'start' }); };
+  $('btnStart').onclick = () => { goFullscreen(); send({ t: 'start' }); };
   $('btnAgain').onclick = () => net && net.send({ t: 'again' });
   $('btnLobby').onclick = () => net && net.send({ t: 'lobby' });
 

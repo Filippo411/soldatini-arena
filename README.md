@@ -1,6 +1,22 @@
-# SOLDATINI ARENA
+# PIPPO GAME ROOM
 
-Party game per 1–4 giocatori. Lo schermo grande (PC, TV o proiettore) mostra la partita, e ognuno usa il proprio telefono come joystick inquadrando un QR code.
+Sala giochi "da salotto" per 1–4 giocatori, in pixel art 8-bit. Lo schermo grande (PC, TV o proiettore) mostra il gioco, e ognuno usa il proprio telefono come controller inquadrando un QR code.
+
+**Come funziona una serata**
+1. Si apre il sito sulla TV e ognuno inquadra il QR con il telefono. Si entra una volta sola per tutta la serata.
+2. Il **capo** (il primo telefono collegato) sceglie il gioco dal menu e preme **GIOCA**. Si può scegliere anche dalla TV, con frecce + INVIO.
+3. A fine partita c'è la classifica: si sceglie **RIGIOCA** oppure **MENU GIOCHI**.
+4. Ogni partita assegna punti alla **classifica della serata**: 3 punti al primo, 2 al secondo, 1 al terzo. Contano solo i giocatori veri, quando sono almeno 2.
+
+**Giochi**
+- ✅ **Soldatini Arena**: sparatutto tutti contro tutti, descritto qui sotto.
+- 🔜 **Holy Sheep**: cani pastore che radunano pecore.
+- 🔜 **Trova le differenze**
+- 🔜 **Pippo Kart**: kart su piste ispirate a Monza, Spa e Monaco, con il telefono come volante.
+
+---
+
+## Soldatini Arena
 
 Si gioca tutti contro tutti in uno sparatutto 2D visto dall'alto, con grafica pixel art in stile arcade militare anni '90. Vince chi arriva per primo a **10 eliminazioni**, oppure chi ne ha di più dopo **3 minuti**.
 
@@ -30,7 +46,7 @@ Comandi in stile Brawl Stars: un joystick per muoversi a sinistra, due "stick d'
 - Se giochi **da solo** entrano in partita 3 bot.
 - Se il telefono si scollega (blocco schermo, chiamata, batteria) puoi **riscansionare il QR**: rientri con lo stesso soldatino e lo stesso punteggio, e la partita non ricomincia.
 
-**Tasti sullo schermo grande:** `INVIO` avvia la partita o ne inizia una nuova · `F` attiva lo schermo intero · `M` attiva o disattiva l'audio · `ESC` (dalla classifica) torna alla lobby.
+**Tasti sullo schermo grande:** `FRECCE` scelgono il gioco · `INVIO` avvia o rigioca · `ESC` (dalla classifica) torna al menu · `F` schermo intero · `M` audio.
 **Importante:** clicca una volta sullo schermo grande per attivare l'audio. I browser lo richiedono.
 
 ---
@@ -97,34 +113,29 @@ Alla fine avrai un indirizzo tipo `https://soldatini-arena.onrender.com` da apri
 ## Come è fatto (per i curiosi)
 
 ```
-soldatini/
-├── server.js                 Server Node SENZA dipendenze: file statici + "centralino" WebSocket
-├── package.json
-├── avvia-windows.bat / avvia-mac.command
-└── public/
-    ├── index.html            Schermo grande (host)
-    ├── play.html             Telefono (controller)
-    ├── css/                  Stile pixel (common, host, controller)
-    └── js/
-        ├── common/
-        │   ├── net.js        WebSocket con riconnessione automatica
-        │   ├── qr.js         Generatore di QR code scritto da zero
-        │   └── icons.js      Icone pixel art condivise (powerup, munizioni...)
-        ├── host/
-        │   ├── config.js     TUTTI i numeri del gioco: velocità, colpi, tempi...
-        │   ├── font.js       Font pixel 5x7 disegnato in codice
-        │   ├── map.js        Generatore casuale di mappe simmetriche e percorribili
-        │   ├── sprites.js    Soldatini, casse, sacchi, barili, carri armati in pixel art
-        │   ├── audio.js      Effetti e musica chiptune sintetizzati (Web Audio)
-        │   ├── game.js       Regole e fisica della partita
-        │   ├── bots.js       Intelligenza dei bot (percorsi su griglia + mira)
-        │   ├── render.js     Disegno a 384x216 con effetti (esplosioni, fumo, bossoli...)
-        │   └── host.js       Lobby, gestione dei telefoni, ciclo di gioco
-        └── controller/
-            └── controller.js Joystick, pulsanti, vibrazione, schermate del telefono
+public/
+├── index.html               Schermo grande (menu + giochi)
+├── play.html                Telefono (controller)
+├── css/                     Stile pixel (common, host, controller)
+└── js/
+    ├── common/              Rete (WebSocket), QR code, icone condivise
+    ├── core/
+    │   ├── registry.js      Colori dei giocatori, punti serata, ELENCO GIOCHI
+    │   ├── font.js          Font pixel 5x7 disegnato in codice
+    │   └── audio.js         Effetti e musica chiptune (Web Audio)
+    ├── room/host.js         La "sala": stanza, menu, telefoni, classifica serata
+    ├── games/
+    │   ├── shooter/         SOLDATINI ARENA (config, mappa, sprite, bot, gioco, disegno)
+    │   │   └── index.js     collegamento del gioco alla sala
+    │   └── upcoming.js      giochi "PROSSIMAMENTE" nel menu
+    └── controller/controller.js   Schermate e comandi del telefono
+server.js                    Server Node SENZA dipendenze: file statici + "centralino" WebSocket
 ```
+
+- **Aggiungere un gioco:** si crea una cartella in `js/games/` con un `index.js` che chiama `GAMES.register({...})`. L'interfaccia è descritta in cima a `js/core/registry.js`. La sala pensa a tutto il resto: telefoni, menu, classifica.
+
 
 - **Architettura:** il server si limita a inoltrare i messaggi. Tutta la partita gira nel browser dello schermo grande. I telefoni mandano solo i comandi (joystick, sparo, powerup) e ricevono munizioni, punteggio e vibrazioni.
 - **Perché WebSocket e non WebRTC/PeerJS:** con WebRTC alcune reti (dati mobili, Wi-Fi aziendali) bloccano il collegamento diretto, e servirebbe un server TURN a pagamento. Con WebSocket su un unico server gratuito funziona ovunque.
 - **Grafica:** è tutta originale e generata in codice (sprite come griglie di caratteri), senza immagini esterne. Il font del menu è "Press Start 2P" di Google Fonts. Se non si carica, il gioco usa un font di riserva, e il font dentro la partita è comunque disegnato in codice.
-- **Modificare le regole:** apri `public/js/host/config.js`. Per esempio `KILLS_TO_WIN: 10`, `MATCH_TIME: 180`, `SPEED: 62`.
+- **Modificare le regole dello sparatutto:** apri `public/js/games/shooter/config.js`. Per esempio `KILLS_TO_WIN: 10`, `MATCH_TIME: 180`, `SPEED: 62`.
