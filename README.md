@@ -8,11 +8,17 @@ Si gioca tutti contro tutti in uno sparatutto 2D visto dall'alto, con grafica pi
 
 ## Come si gioca
 
+Comandi in stile Brawl Stars: un joystick per muoversi a sinistra, due "stick d'attacco" a destra.
+
 | Sul telefono | Cosa fa |
 |---|---|
-| **Joystick** (metà sinistra dello schermo: appoggia il pollice dove vuoi) | Muove il soldatino in tutte le direzioni |
-| **SPARA!** (tieni premuto per sparare a raffica) | Spara nella direzione in cui guardi |
-| **POWERUP** | Usa il powerup che hai raccolto (grigio = nessun powerup) |
+| **Joystick** (metà sinistra: appoggia il pollice dove vuoi) | Muove il soldatino in tutte le direzioni |
+| **SPARA: tocco veloce** | Un colpo nella direzione in cui stai camminando |
+| **SPARA: tieni premuto senza muovere il dito** | Raffica nella direzione in cui cammini |
+| **SPARA: trascina** | Mira: sullo schermo grande compare un mirino laser. **Rilascia** per sparare lì. Puoi mirare in una direzione e intanto camminare in un'altra |
+| **POWERUP: tocco** | Usa il powerup (la granata va dove cammini) |
+| **POWERUP: trascina** (con la granata) | Mostra traiettoria e area dell'esplosione: più trascini lontano, più lontano la lanci. Rilascia per lanciare |
+| Riporta il dito al centro prima di rilasciare | Annulla il colpo |
 
 - **Colpi:** si parte con 10. Quando li finisci, raccogli una **cassa munizioni** (torni a 10).
 - **Flash** ⚡: corri molto più veloce per 5 secondi.

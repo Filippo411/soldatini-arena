@@ -81,6 +81,9 @@
       px(bx - Math.cos(a) * 3, by - Math.sin(a) * 3, '#ff5a2e');
     }
 
+    // --- mirini (quando un giocatore sta mirando con lo stick) ---
+    for (const s of g.soldiers) if (!s.dead && !s.isBot && g.state === 'play') drawAim(s, g);
+
     // --- particelle ---
     for (const p of g.particles) drawParticle(p);
 
@@ -196,6 +199,63 @@
         px(mx - cy * 3, my + cx * 3, '#ff9c3b');
         px(mx + cy * 3, my - cx * 3, '#ff9c3b');
       }
+    }
+  }
+
+  /** Mirino laser tratteggiato (sparo) o traiettoria della granata (powerup) */
+  function drawAim(s, g) {
+    const pc = C.PLAYERS[s.slot];
+    const inp = s.input;
+    const blink = Math.floor(g.clock * 12) % 2;
+    if (inp.aimStick != null) {
+      const cx = Math.cos(inp.aimStick), cy = Math.sin(inp.aimStick);
+      let ex = s.x, ey = s.y;
+      for (let d = 7; d <= C.AIM_RANGE; d += 1) {
+        const x = s.x + cx * d, y = s.y + cy * d;
+        if (g.map.solidShot(x, y)) break;
+        ex = x; ey = y;
+        // tratteggio spesso che "scorre" verso il bersaglio, con bordo scuro per leggerlo sulla sabbia
+        if (((d - Math.floor(g.clock * 40)) % 6 + 6) % 6 < 4) {
+          const c = d % 12 < 6 ? pc.color : pc.light;
+          rect(x, y - 5, 2, 1, K);          // ombra scura sotto, per staccare dalla sabbia
+          rect(x, y - 7, 2, 2, c);
+        }
+      }
+      // mirino alla fine del raggio
+      const x = R(ex), y = R(ey - 7);
+      const col = blink ? '#ffffff' : pc.color;
+      ring(x, y + 0.5, 4, K);
+      ring(x, y, 3, col);
+      px(x, y, col);
+    }
+    if (inp.powStick != null && s.power === 'grenade') {
+      const pts = g.predictGrenade(s, inp.powStick, inp.powMag);
+      for (let i = 0; i < pts.length; i += 3) {
+        const p = pts[i];
+        px(p.x, p.y, 'rgba(40,20,10,0.35)');
+        rect(p.x - 1, p.y - 4 - p.z, 3, 3, K);
+        px(p.x, p.y - 3 - p.z, i % 6 ? pc.color : '#ffffff');
+      }
+      const end = pts[pts.length - 1];
+      if (end) {
+        // area dell'esplosione, a terra
+        const n = 40;
+        for (let i = 0; i < n; i++) {
+          if ((i + Math.floor(g.clock * 10)) % 3 === 0) continue;
+          const a = (i / n) * Math.PI * 2;
+          const ex2 = end.x + Math.cos(a) * C.BLAST_R, ey2 = end.y + Math.sin(a) * C.BLAST_R * 0.8;
+          rect(ex2, ey2, 2, 2, blink ? '#ff3b3b' : '#ffd23b');
+        }
+        ctx.fillStyle = 'rgba(255,59,59,0.18)';
+        for (let dy = -C.BLAST_R * 0.8; dy <= C.BLAST_R * 0.8; dy++) {
+          const w = Math.sqrt(Math.max(0, 1 - (dy * dy) / (C.BLAST_R * C.BLAST_R * 0.64))) * C.BLAST_R;
+          ctx.fillRect(R(end.x - w), R(end.y + dy), R(w * 2), 1);
+        }
+        rect(end.x - 1, end.y - 1, 3, 3, '#ff3b3b');
+      }
+    } else if (inp.powStick != null && s.power) {
+      // flash/scudo: nessuna mira, solo un cerchietto attorno al soldatino
+      ring(s.x, s.y - 7, 13, blink ? '#5ff2ff' : '#ffffff');
     }
   }
 

@@ -61,8 +61,15 @@
         <p class="zone-hint">MUOVITI</p>
       </div>
       <div class="buttons">
-        <button class="pbtn pow" id="btnPow"><canvas id="powIcon" width="9" height="9"></canvas><span id="powLabel">POWERUP</span></button>
-        <button class="pbtn fire" id="btnFire"><span>SPARA!</span></button>
+        <!-- Stick d'attacco: tocca = spara dove cammini, trascina = mira e rilascia per sparare -->
+        <div class="pbtn pow" id="btnPow">
+          <div class="aring"></div>
+          <div class="aknob"><canvas id="powIcon" width="9" height="9"></canvas><span id="powLabel">POWERUP</span></div>
+        </div>
+        <div class="pbtn fire" id="btnFire">
+          <div class="aring"></div>
+          <div class="aknob"><span>SPARA!</span><small>TOCCA O TRASCINA</small></div>
+        </div>
       </div>
     </div>
     <div class="ko hidden" id="koLayer"><div class="ko-text">K.O.!</div><div class="ko-sub" id="koSub">RIENTRI TRA 3</div></div>

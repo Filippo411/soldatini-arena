@@ -51,6 +51,9 @@
       this.trail = [];
       this.emptyShown = 0;
       this.hurtT = 0;
+      this.moveFace = undefined; // ultima direzione di camminata
+      this.faceLockT = 0;
+      this.faceHist = [];
     }
     get alive() { return !this.dead; }
   }
@@ -174,19 +177,38 @@
       if (s.shieldT > 0) { s.shieldT = Math.max(0, s.shieldT - dt); if (s.shieldT === 0) s.shieldHits = 0; }
 
       const inp = s.connected || s.isBot ? s.input : { x: 0, y: 0, fire: false, pow: false };
+      s.faceLockT = Math.max(0, (s.faceLockT || 0) - dt);
+
       // --- Movimento ---
+      // Curva del joystick: piccola zona morta, poi si arriva presto a piena velocità
       let mag = Math.hypot(inp.x, inp.y);
-      s.moving = mag > 0.18;
+      const wasMoving = s.moving;
+      s.moving = mag > C.STICK_DEADZONE;
       if (s.moving) {
-        if (mag > 1) mag = 1;
         const ang = Math.atan2(inp.y, inp.x);
-        if (!inp.noTurn) s.face = ang;
-        const sp = C.SPEED * (0.35 + 0.65 * mag) * (s.flashT > 0 ? C.FLASH_MULT : 1);
+        const k = Math.min(1, (mag - C.STICK_DEADZONE) / (C.STICK_FULL - C.STICK_DEADZONE));
+        const sp = C.SPEED * (0.5 + 0.5 * k) * (s.flashT > 0 ? C.FLASH_MULT : 1);
         this.moveSoldier(s, Math.cos(ang) * sp * dt, Math.sin(ang) * sp * dt);
         s.walkT += dt * (s.flashT > 0 ? 1.8 : 1);
-      } else if (inp.aim !== undefined) {
-        s.face = inp.aim; // i bot possono mirare stando fermi
+        // memoria della direzione: quando si molla il joystick il pollice "sbanda",
+        // quindi teniamo la direzione di un attimo prima
+        s.faceHist = s.faceHist || [];
+        s.faceHist.push({ t: this.clock, a: ang });
+        while (s.faceHist.length && this.clock - s.faceHist[0].t > 0.15) s.faceHist.shift();
+        s.moveFace = ang;
+      } else if (wasMoving && s.faceHist && s.faceHist.length) {
+        s.moveFace = s.faceHist[0].a;
+        s.faceHist = [];
       }
+
+      // --- Direzione in cui si guarda (e si spara) ---
+      //  1. stick di mira attivo (telefono) -> si guarda dove si mira
+      //  2. subito dopo un colpo mirato -> resta girato da quella parte un attimo
+      //  3. altrimenti -> direzione di camminata
+      if (inp.aimStick != null) s.face = inp.aimStick;
+      else if (inp.powStick != null) s.face = inp.powStick;
+      else if (inp.aim !== undefined && !s.moving) s.face = inp.aim; // bot che mirano da fermi
+      else if (s.faceLockT <= 0 && s.moveFace !== undefined) s.face = s.moveFace;
 
       // scia del Flash
       if (s.flashT > 0) {
@@ -197,12 +219,20 @@
 
       // --- Sparo ---
       // fireTap: un tocco rapidissimo sul telefono spara comunque un colpo
-      if ((inp.fire || inp.fireTap) && s.cooldown <= 0) { inp.fireTap = false; this.shoot(s); }
+      // shot: colpo singolo dallo stick di mira (angolo = dove mirava, null = dove cammina)
+      if (inp.shot && s.cooldown <= 0) {
+        if (inp.shot.a != null) { s.face = inp.shot.a; s.faceLockT = 0.35; }
+        inp.shot = null;
+        this.shoot(s);
+      } else if ((inp.fire || inp.fireTap) && s.cooldown <= 0) { inp.fireTap = false; this.shoot(s); }
 
       // --- Powerup ---
       if (inp.pow) {
+        const p = inp.pow;
         inp.pow = false;
-        this.usePower(s);
+        // dallo stick: direzione e forza del lancio (granata)
+        if (typeof p === 'object' && p.a != null) { s.face = p.a; s.faceLockT = 0.35; }
+        this.usePower(s, typeof p === 'object' ? p.m : null);
       }
 
       // --- Raccolta oggetti ---
@@ -298,7 +328,7 @@
       this.emit('hud', s);
     }
 
-    usePower(s) {
+    usePower(s, throwMag) {
       if (!s.power || s.dead) return;
       const p = s.power;
       s.power = null;
@@ -312,11 +342,7 @@
         this.emit('sfx', 'shield');
         this.floatText(s.x, s.y - 22, 'SCUDO!', '#5ff2ff');
       } else if (p === 'grenade') {
-        const cx = Math.cos(s.face), cy = Math.sin(s.face);
-        this.grenades.push({
-          x: s.x + cx * 4, y: s.y + cy * 4, z: 8, vx: cx * C.GRENADE_SPEED, vy: cy * C.GRENADE_SPEED, vz: 70,
-          t: 0, owner: s, spin: 0,
-        });
+        this.grenades.push(this.newGrenade(s, s.face, throwMag));
         this.emit('sfx', 'throw');
       }
       this.emit('hud', s);
@@ -485,21 +511,11 @@
       for (const g of this.grenades) {
         g.t += dt;
         g.spin += dt * 15;
-        // volo con attrito e rimbalzi sull'altezza z
-        g.vz -= 300 * dt;
-        g.z += g.vz * dt;
-        if (g.z <= 0) {
-          g.z = 0;
-          if (g.vz < -25) { g.vz = -g.vz * 0.45; this.emit('sfx', 'bounce'); } else g.vz = 0;
-          g.vx *= 0.9; g.vy *= 0.9;
-        }
-        const f = Math.pow(0.4, dt);
-        g.vx *= f; g.vy *= f;
-        const nx = g.x + g.vx * dt, ny = g.y + g.vy * dt;
+        const r = this.stepGrenade(g, dt);
+        if (r.bounced) this.emit('sfx', 'bounce');
         let boom = g.t >= C.GRENADE_FUSE;
         // impatto contro un ostacolo
-        if (this.map.solidShot(nx, ny)) { boom = true; this.hitTile(nx, ny, g.owner); }
-        else { g.x = nx; g.y = ny; }
+        if (r.wall) { boom = true; this.hitTile(r.wx, r.wy, g.owner); }
         // impatto contro un soldatino (non il lanciatore nei primi istanti)
         for (const s of this.soldiers) {
           if (s.dead || (s === g.owner && g.t < 0.4)) continue;
@@ -511,6 +527,47 @@
         }
       }
       this.grenades = this.grenades.filter((g) => !g.done);
+    }
+
+    /**
+     * Fisica della granata per un passo: volo con attrito e rimbalzi sull'altezza z.
+     * Usata sia dalla granata vera sia dall'anteprima della traiettoria mentre si mira.
+     */
+    stepGrenade(g, dt) {
+      const out = { bounced: false, wall: false };
+      g.vz -= 300 * dt;
+      g.z += g.vz * dt;
+      if (g.z <= 0) {
+        g.z = 0;
+        if (g.vz < -25) { g.vz = -g.vz * 0.45; out.bounced = true; } else g.vz = 0;
+        g.vx *= 0.9; g.vy *= 0.9;
+      }
+      const f = Math.pow(0.4, dt);
+      g.vx *= f; g.vy *= f;
+      const nx = g.x + g.vx * dt, ny = g.y + g.vy * dt;
+      if (this.map.solidShot(nx, ny)) { out.wall = true; out.wx = nx; out.wy = ny; }
+      else { g.x = nx; g.y = ny; }
+      return out;
+    }
+
+    /** Granata appena lanciata da s, con forza m (0..1, null = piena) */
+    newGrenade(s, angle, m) {
+      const cx = Math.cos(angle), cy = Math.sin(angle);
+      const sp = C.GRENADE_SPEED * (m == null ? 1 : 0.35 + 0.65 * Math.max(0, Math.min(1, m)));
+      return { x: s.x + cx * 4, y: s.y + cy * 4, z: 8, vx: cx * sp, vy: cy * sp, vz: 70, t: 0, owner: s, spin: 0 };
+    }
+
+    /** Anteprima della traiettoria: elenco di punti {x,y,z} fino allo scoppio */
+    predictGrenade(s, angle, m) {
+      const g = this.newGrenade(s, angle, m);
+      const pts = [];
+      const dt = 1 / 30;
+      for (let t = 0; t < C.GRENADE_FUSE; t += dt) {
+        g.t = t;
+        if (this.stepGrenade(g, dt).wall) break;
+        pts.push({ x: g.x, y: g.y, z: g.z });
+      }
+      return pts;
     }
 
     updatePending(dt) {

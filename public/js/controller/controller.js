@@ -310,38 +310,90 @@
   setInterval(() => { if (current === 'scrPad' && net) net.send({ t: 'in', x: sentX, y: sentY }); }, 500);
 
   // ------------------------------------------------------------------
-  // Pulsanti SPARA e POWERUP
+  // Stick d'attacco stile Brawl Stars (SPARA e POWERUP)
+  //   - TOCCO veloce          -> colpo nella direzione in cui stai camminando
+  //   - TIENI PREMUTO fermo   -> raffica nella direzione in cui cammini
+  //   - TRASCINA              -> mira (sullo schermo grande compare il mirino),
+  //                              RILASCIA per sparare lì
+  //   - riporta il dito al centro prima di rilasciare -> annulla
   // ------------------------------------------------------------------
-  const fireBtn = $('btnFire'), powBtn = $('btnPow');
-  let fireId = null;
-  fireBtn.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    fireId = e.pointerId;
-    fireBtn.setPointerCapture(e.pointerId);
-    fireBtn.classList.add('pressed');
-    if (net) net.send({ t: 'fire', on: 1 });
-    buzz(12);
-  });
-  const fireUp = (e) => {
-    if (e.pointerId !== fireId) return;
-    fireId = null;
-    fireBtn.classList.remove('pressed');
-    if (net) net.send({ t: 'fire', on: 0 });
-  };
-  fireBtn.addEventListener('pointerup', fireUp);
-  fireBtn.addEventListener('pointercancel', fireUp);
-  fireBtn.addEventListener('lostpointercapture', fireUp);
+  function attackStick(el, h) {
+    const knob = el.querySelector('.aknob');
+    let id = null, aiming = false, cancel = false, holding = false, holdTimer = null;
+    let cx = 0, cy = 0, ang = 0, mag = 0, lastSend = 0;
+    const R = () => el.offsetWidth * 0.75;         // distanza massima di trascinamento
+    const TH = () => Math.max(14, el.offsetWidth * 0.16); // soglia per iniziare a mirare
 
-  powBtn.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    powBtn.classList.add('pressed');
-    if (net) net.send({ t: 'pow' });
-    buzz(20);
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (id !== null || (h.enabled && !h.enabled())) return;
+      id = e.pointerId;
+      el.setPointerCapture(id);
+      const r = el.getBoundingClientRect();
+      cx = r.left + r.width / 2; cy = r.top + r.height / 2;  // il centro del pulsante è l'origine
+      aiming = false; cancel = false; holding = false;
+      el.classList.add('pressed');
+      buzz(10);
+      if (h.onHoldStart) holdTimer = setTimeout(() => { holding = true; h.onHoldStart(); }, 260);
+    });
+
+    el.addEventListener('pointermove', (e) => {
+      if (e.pointerId !== id) return;
+      e.preventDefault();
+      let dx = e.clientX - cx, dy = e.clientY - cy;
+      const d = Math.hypot(dx, dy), max = R();
+      if (!aiming && d > TH()) {
+        aiming = true;
+        clearTimeout(holdTimer);
+        if (holding) { holding = false; h.onHoldEnd && h.onHoldEnd(); }
+        el.classList.add('aiming');
+      }
+      if (!aiming) return;
+      if (d > max) { dx = (dx / d) * max; dy = (dy / d) * max; }
+      knob.style.transform = `translate(${Math.round(dx)}px,${Math.round(dy)}px)`;
+      const nowCancel = d < TH() * 0.8;
+      if (nowCancel !== cancel) { cancel = nowCancel; el.classList.toggle('cancel', cancel); if (cancel) buzz(8); }
+      ang = Math.atan2(dy, dx);
+      mag = Math.min(1, d / max);
+      const now = performance.now();
+      if (now - lastSend > 33) { lastSend = now; h.onAim(cancel ? null : ang, mag); }
+    });
+
+    const up = (e) => {
+      if (e.pointerId !== id) return;
+      id = null;
+      clearTimeout(holdTimer);
+      el.classList.remove('pressed', 'aiming', 'cancel');
+      knob.style.transform = '';
+      if (holding) { holding = false; h.onHoldEnd && h.onHoldEnd(); return; }
+      if (aiming) {
+        if (cancel) h.onAim(null, 0);                // annullato
+        else h.onRelease(ang, mag);                  // colpo mirato
+      } else {
+        h.onRelease(null, null);                     // tocco semplice
+      }
+      aiming = false;
+    };
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    el.addEventListener('lostpointercapture', up);
+  }
+
+  const send = (m) => { if (net) net.send(m); };
+  const r3 = (a) => (a == null ? null : Math.round(a * 1000) / 1000);
+
+  attackStick($('btnFire'), {
+    onAim: (a) => send({ t: 'aim', a: r3(a) }),
+    onRelease: (a) => send({ t: 'shoot', a: r3(a) }),
+    onHoldStart: () => send({ t: 'fire', on: 1 }),   // tenuto premuto senza trascinare: raffica
+    onHoldEnd: () => send({ t: 'fire', on: 0 }),
   });
-  const powUp = () => powBtn.classList.remove('pressed');
-  powBtn.addEventListener('pointerup', powUp);
-  powBtn.addEventListener('pointercancel', powUp);
-  powBtn.addEventListener('pointerleave', powUp);
+
+  attackStick($('btnPow'), {
+    enabled: () => !!lastPow,                        // niente powerup = stick spento
+    onAim: (a, m) => send({ t: 'paim', a: r3(a), m: r3(m) }),
+    onRelease: (a, m) => send({ t: 'pow', a: r3(a), m: r3(m) }),
+  });
 
   $('btnStart').onclick = () => { goFullscreen(); net && net.send({ t: 'start' }); };
   $('btnAgain').onclick = () => net && net.send({ t: 'again' });
@@ -359,31 +411,40 @@
   }, { passive: false });
 
   // ------------------------------------------------------------------
-  // Tastiera (comodo per provare dal PC): WASD/frecce, SPAZIO, E
+  // Tastiera (comodo per provare dal PC):
+  //   WASD = muovi · SPAZIO = spara dove cammini · IJKL = mira, rilascia per sparare · E = powerup
   // ------------------------------------------------------------------
   const keys = new Set();
-  function keyStick() {
+  const dirOf = (up, left, down, right) => {
     let x = 0, y = 0;
-    if (keys.has('a') || keys.has('arrowleft')) x -= 1;
-    if (keys.has('d') || keys.has('arrowright')) x += 1;
-    if (keys.has('w') || keys.has('arrowup')) y -= 1;
-    if (keys.has('s') || keys.has('arrowdown')) y += 1;
-    const d = Math.hypot(x, y) || 1;
-    sx = x / d; sy = y / d;
+    if (keys.has(left)) x -= 1;
+    if (keys.has(right)) x += 1;
+    if (keys.has(up)) y -= 1;
+    if (keys.has(down)) y += 1;
+    return { x, y };
+  };
+  let keyAim = null;
+  function keyUpdate() {
+    const m = dirOf('w', 'a', 's', 'd');
+    const ar = dirOf('arrowup', 'arrowleft', 'arrowdown', 'arrowright');
+    m.x += ar.x; m.y += ar.y;
+    const d = Math.hypot(m.x, m.y) || 1;
+    sx = m.x / d; sy = m.y / d;
     sendStick(sx, sy, true);
+    const a = dirOf('i', 'j', 'k', 'l');
+    if (a.x || a.y) { keyAim = Math.atan2(a.y, a.x); send({ t: 'aim', a: r3(keyAim) }); }
+    else if (keyAim !== null) { send({ t: 'shoot', a: r3(keyAim) }); keyAim = null; }
   }
   addEventListener('keydown', (e) => {
     if (current !== 'scrPad' || e.repeat) return;
     const k = e.key.toLowerCase();
-    if (k === ' ') { net && net.send({ t: 'fire', on: 1 }); e.preventDefault(); return; }
-    if (k === 'e') { net && net.send({ t: 'pow' }); return; }
-    keys.add(k); keyStick();
+    if (k === ' ') { send({ t: 'shoot', a: null }); e.preventDefault(); return; }
+    if (k === 'e') { send({ t: 'pow', a: null, m: null }); return; }
+    keys.add(k); keyUpdate();
   });
   addEventListener('keyup', (e) => {
     if (current !== 'scrPad') return;
-    const k = e.key.toLowerCase();
-    if (k === ' ') { net && net.send({ t: 'fire', on: 0 }); return; }
-    keys.delete(k); keyStick();
+    keys.delete(e.key.toLowerCase()); keyUpdate();
   });
 
   // ------------------------------------------------------------------

@@ -129,7 +129,27 @@
         return;
       }
       case 'fire': { const sol = soldierOf(s); if (sol) { sol.input.fire = !!d.on; if (d.on) sol.input.fireTap = true; } return; }
-      case 'pow': { const sol = soldierOf(s); if (sol && phase === 'game') sol.input.pow = true; return; }
+      // --- Stick di mira (stile Brawl Stars) ---
+      // aim: il giocatore sta trascinando lo stick SPARA (a = angolo, null = annullato)
+      case 'aim': { const sol = soldierOf(s); if (sol) sol.input.aimStick = angleOrNull(d.a); return; }
+      // shoot: ha rilasciato lo stick -> un colpo (a = angolo mirato, null = tocco semplice)
+      case 'shoot': {
+        const sol = soldierOf(s);
+        if (sol && phase === 'game') { sol.input.aimStick = null; sol.input.shot = { a: angleOrNull(d.a) }; }
+        return;
+      }
+      // paim: sta mirando con lo stick POWERUP (m = forza del lancio 0..1)
+      case 'paim': {
+        const sol = soldierOf(s);
+        if (sol) { sol.input.powStick = angleOrNull(d.a); sol.input.powMag = clamp(+d.m || 0, 0, 1); }
+        return;
+      }
+      case 'pow': {
+        const sol = soldierOf(s);
+        if (sol) sol.input.powStick = null;
+        if (sol && phase === 'game') sol.input.pow = { a: angleOrNull(d.a), m: d.m == null ? null : clamp(+d.m, 0, 1) };
+        return;
+      }
       case 'start':
         if (phase === 'lobby' && s && leadSlot() === s) startMatch();
         return;
@@ -147,6 +167,7 @@
   }
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const angleOrNull = (a) => (a === null || a === undefined || !isFinite(+a) ? null : +a);
 
   function onHello(cid, d) {
     const name = cleanName(d.name) || 'SOLDATO';
@@ -196,7 +217,7 @@
     const sol = soldierOf(s);
     if (sol) {
       sol.connected = s.connected;
-      if (!s.connected) { sol.input.x = 0; sol.input.y = 0; sol.input.fire = false; }
+      if (!s.connected) { sol.input.x = 0; sol.input.y = 0; sol.input.fire = false; sol.input.aimStick = null; sol.input.powStick = null; }
     }
   }
 

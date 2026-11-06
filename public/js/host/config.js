@@ -25,7 +25,10 @@
     // --- Soldatino ---
     SPEED: 62,          // pixel al secondo
     FLASH_MULT: 1.8,
-    HALF: 3,            // mezza larghezza del "box" di collisione ai piedi
+    HALF: 2.5,          // mezza larghezza del "box" di collisione ai piedi
+    STICK_DEADZONE: 0.2, // joystick: sotto questa spinta il soldatino sta fermo
+    STICK_FULL: 0.65,    // joystick: da questa spinta in su si va a piena velocità
+    AIM_RANGE: 90,       // lunghezza del mirino laser mentre si mira
     HIT_R: 6,           // raggio entro cui un proiettile colpisce
 
     // --- Armi ---

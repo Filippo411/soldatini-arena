@@ -8,7 +8,7 @@
  * e ci arriva seguendo un percorso calcolato sulla griglia (ricerca in ampiezza).
  * Se vede un avversario a tiro, si ferma, prende la mira (con un po' di
  * imprecisione e tempo di reazione) e spara.
- * Giocano "lealmente": come gli umani sparano nella direzione in cui guardano.
+ * Come gli umani con lo stick di mira, possono spostarsi di lato continuando a mirare.
  */
 (function () {
   'use strict';
@@ -64,6 +64,7 @@
     inp.fire = false;
     inp.x = 0; inp.y = 0;
     delete inp.aim;
+    inp.aimStick = null; // come gli umani con lo stick di mira
 
     // --- Avversario visibile più vicino ---
     let target = null, td = 1e9;
@@ -84,9 +85,8 @@
       const aim = want + b.aimErr * Math.max(0.3, 1 - b.seenT);
       // granata: se il bersaglio è a media distanza
       if (s.power === 'grenade' && td > 35 && td < 85) {
-        inp.aim = want;
-        s.face = want;
-        inp.pow = true;
+        inp.aimStick = want;
+        inp.pow = { a: want, m: Math.min(1, td / 90) };
         return;
       }
       if (td > 100) {
@@ -94,14 +94,12 @@
         followPath(game, s, target.x, target.y, dt);
       } else {
         // fermo, mira e spara dopo il tempo di reazione
-        inp.aim = aim;
-        s.face = aim;
+        inp.aimStick = aim;
         if (b.seenT > b.reaction) inp.fire = true;
         // ogni tanto fa un passo laterale per non essere un bersaglio fisso
         if (Math.sin(game.clock * 2 + s.slot) > 0.75) {
           const side = want + Math.PI / 2 * (s.slot % 2 ? 1 : -1);
           inp.x = Math.cos(side) * 0.6; inp.y = Math.sin(side) * 0.6;
-          inp.aim = undefined;
         }
       }
       return;
