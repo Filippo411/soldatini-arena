@@ -57,3 +57,7 @@ html, body {
 @keyframes pulse { 50% { filter: brightness(1.25); } }
 @keyframes blink { 50% { opacity: 0; } }
 .blink { animation: blink 0.8s steps(1) infinite; }
+
+/* Logo PIPPO (blocchi Tetris) + GAME ROOM (8-bit) */
+.logo { margin: 0; line-height: 0; }
+.logo canvas { image-rendering: pixelated; display: block; height: auto; }

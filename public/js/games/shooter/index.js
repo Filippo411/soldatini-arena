@@ -102,7 +102,7 @@
     g.time = 9999;
     return {
       update(dt) { g.update(dt); },
-      draw() { Render.draw(g, {}); },
+      draw() { Render.draw(g, { demo: true }); },
     };
   }
 

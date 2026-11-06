@@ -463,6 +463,7 @@
   // ------------------------------------------------------------------
   // Avvio: se arrivo dal QR e ho già un nome per questa stanza, rientro da solo
   // ------------------------------------------------------------------
+  Logo.mount($('logo'));
   show('scrJoin');
   if (room && myName && store.get('room') === room) join();
 })();

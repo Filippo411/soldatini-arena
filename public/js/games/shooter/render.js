@@ -103,6 +103,7 @@
       ctx.fillRect(0, HUD_TOP, W, C.MAP_H);
     }
 
+    if (opts.demo) return;  // sfondo del menu: niente HUD né scritte
     drawFeed(g);
     drawHUD(g, opts);
     drawCenterText(g);

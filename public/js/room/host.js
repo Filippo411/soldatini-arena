@@ -525,6 +525,7 @@
   }
 
   // Avvio
+  Logo.mount($('logo'));
   buildGameCards();
   newDemo();
   refreshHub();

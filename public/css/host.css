@@ -64,6 +64,9 @@ body.host { overflow: hidden; }
 #slots li .tag { margin-left: auto; font-size: 8px !important; font-size: 10px; color: var(--grey); }
 #slots li .tag.off { color: var(--red); }
 
+#hub .logo { margin: 0 0 2.5vh; }
+#hub .logo canvas { width: auto; height: min(19vh, 200px); filter: drop-shadow(6px 6px 0 rgba(0,0,0,0.45)); }
+
 /* Schede dei giochi */
 .panel.games { display: flex; flex-direction: column; align-items: center; max-width: 520px; }
 .game-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 1.6vh; }

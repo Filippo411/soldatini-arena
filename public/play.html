@@ -18,7 +18,7 @@
 
   <!-- 1. Ingresso: nome (e codice stanza se non arriva dal QR) -->
   <section id="scrJoin" class="screen">
-    <h1 class="title">PIPPO<span>GAME ROOM</span></h1>
+    <h1 class="logo"><canvas id="logo" aria-label="Pippo Game Room"></canvas></h1>
     <form id="joinForm" autocomplete="off">
       <label>CODICE STANZA
         <input id="inRoom" maxlength="4" autocapitalize="characters" spellcheck="false" placeholder="ABCD">
@@ -110,6 +110,8 @@
 
   <script src="js/common/net.js"></script>
   <script src="js/common/icons.js"></script>
+  <script src="js/core/font.js"></script>
+  <script src="js/common/logo.js"></script>
   <script src="js/controller/controller.js"></script>
 </body>
 </html>

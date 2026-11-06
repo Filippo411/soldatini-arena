@@ -26,6 +26,8 @@ body.ctrl {
 .small-title { font-size: clamp(18px, 6vmin, 34px); }
 
 /* --- Ingresso --- */
+#scrJoin .logo { margin-bottom: 4vmin; }
+#scrJoin .logo canvas { width: auto; height: min(26vmin, 150px); }
 #joinForm { display: flex; flex-direction: column; gap: 3vmin; align-items: center; touch-action: manipulation; }
 #joinForm label { font-size: 10px; color: var(--grey); display: flex; flex-direction: column; gap: 6px; align-items: center; }
 #joinForm input {
