@@ -101,7 +101,7 @@
       for (let y = 0; y < WS; y += 28) for (let x = 0; x < WS; x += 44) g.fillRect(x + (y % 56 ? 16 : 0), y, 16, 4);
       g.restore();
     }
-    if (!tr.walls) strokePath(g, S, W + 44, tr.runoff);                        // vie di fuga di sabbia
+    if (!tr.walls) strokePath(g, S, W + 60, tr.runoff);                        // vie di fuga di sabbia
     else strokePath(g, S, W + 14, '#c9ccd4');                                   // guardrail
     if (tr.walls) strokePath(g, S, W + 14, '#ff3b3b', [10, 10]);
     strokePath(g, S, W + 8, '#ffffff');                                         // cordoli bianchi...
@@ -150,7 +150,7 @@
     h.scale(1 / TEXEL, 1 / TEXEL);
     const col = (t) => `rgb(${t * 50},0,0)`;
     h.fillStyle = col(tr.walls ? SURF.WALL : SURF.GRASS); h.fillRect(0, 0, WS, WS);
-    if (!tr.walls) strokePath(h, S, W + 44, col(SURF.SAND));
+    if (!tr.walls) strokePath(h, S, W + 60, col(SURF.SAND));
     strokePath(h, S, W + 8, col(SURF.KERB));
     strokePath(h, S, W, col(SURF.ROAD));
     const raw = h.getImageData(0, 0, TS, TS).data;

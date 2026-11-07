@@ -8,6 +8,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#1b1b26">
+  <meta name="apple-mobile-web-app-title" content="Joystick">
+  <link rel="manifest" href="manifest-play.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
   <title>Pippo Game Room</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
@@ -29,6 +32,8 @@
       <button class="btn big" type="submit">ENTRA!</button>
     </form>
     <p class="err" id="joinErr"></p>
+    <!-- solo iPhone: Safari non ha lo schermo intero per le pagine web -->
+    <p class="note small hidden" id="fsHint">PER LO SCHERMO INTERO: TOCCA CONDIVIDI, POI "AGGIUNGI A HOME" E APRI DA LI</p>
   </section>
 
   <!-- 2. Menu della sala: il capo sceglie il gioco -->
@@ -207,9 +212,13 @@
     <p>RUOTA IL TELEFONO<br>IN ORIZZONTALE</p>
   </div>
 
+  <!-- ESCI: solo il capo, durante una partita. Due tocchi per evitare errori. -->
+  <button class="btn tiny exit-btn hidden" id="btnExit">ESCI</button>
+
   <div id="connBadge" class="conn-badge hidden">RICONNESSIONE...</div>
 
   <script src="js/common/net.js"></script>
+  <script src="js/common/fullscreen.js"></script>
   <script src="js/common/icons.js"></script>
   <script src="js/core/font.js"></script>
   <script src="js/common/logo.js"></script>

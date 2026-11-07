@@ -80,14 +80,13 @@
   }
 
   function goFullscreen() {
-    const el = document.documentElement;
-    try {
-      const p = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : (el.webkitRequestFullscreen && el.webkitRequestFullscreen());
-      if (p && p.then) p.then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {})).catch(() => {});
-    } catch (e) { /* non supportato (iPhone): pazienza */ }
+    PGFullscreen.enter();     // (iPhone: non esiste, vedi il suggerimento "Aggiungi a Home")
     // tieni lo schermo acceso
     try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) { /* no */ }
   }
+  // Se la pagina si ricarica (o si esce per sbaglio) il primo tocco rimette lo schermo intero
+  PGFullscreen.autoOnGesture(true);
+  $('fsHint').classList.toggle('hidden', !PGFullscreen.needsInstall);
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && navigator.wakeLock && joined) navigator.wakeLock.request('screen').catch(() => {});
   });
@@ -179,8 +178,33 @@
       show('scrOver');
     }
     if (m.phase !== 'over') overBuzzed = false;
+    // ESCI: solo il capo, solo mentre si gioca
+    const canExit = m.phase === 'game' && !!m.lead;
+    $('btnExit').classList.toggle('hidden', !canExit);
+    if (!canExit) resetExitBtn();
   }
   let overBuzzed = false;
+
+  // Pulsante ESCI: primo tocco = conferma, secondo tocco = si torna al menu giochi
+  let exitTimer = null;
+  function resetExitBtn() {
+    clearTimeout(exitTimer);
+    exitTimer = null;
+    $('btnExit').classList.remove('confirm');
+    $('btnExit').textContent = 'ESCI';
+  }
+  $('btnExit').addEventListener('click', () => {
+    if (!exitTimer) {
+      $('btnExit').classList.add('confirm');
+      $('btnExit').textContent = 'SICURO? TOCCA ANCORA';
+      buzz(30);
+      exitTimer = setTimeout(resetExitBtn, 3000);
+    } else {
+      resetExitBtn();
+      send({ t: 'exit' });
+      buzz([40, 40, 40]);
+    }
+  });
 
   /** Menu della sala sul telefono: classifica della serata + scelta del gioco (solo il capo) */
   function showHub(m) {

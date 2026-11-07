@@ -56,13 +56,24 @@
   // ------------------------------------------------------------------
   function fit() {
     const w = canvas.width || 384, h = canvas.height || 216;
-    const s = Math.min(innerWidth / w, innerHeight / h);
+    // area davvero visibile (su telefono/iPad le barre del browser cambiano l'altezza)
+    const vv = window.visualViewport;
+    const vw = Math.min(innerWidth, vv ? vv.width : innerWidth), vh = Math.min(innerHeight, vv ? vv.height : innerHeight);
+    const s = Math.min(vw / w, vh / h);
     const si = Math.floor(s);
+    // scala intera = pixel perfetti (TV); su schermi piccoli si usa la scala esatta per riempire il dispositivo
     const scale = si >= 2 && si / s > 0.9 ? si : s;
-    canvas.style.width = Math.floor(w * scale) + 'px';
-    canvas.style.height = Math.floor(h * scale) + 'px';
+    canvas.style.width = Math.max(1, Math.floor(w * scale)) + 'px';
+    canvas.style.height = Math.max(1, Math.floor(h * scale)) + 'px';
+    document.documentElement.classList.add('has-vh');
+    document.documentElement.style.setProperty('--vh', vh + 'px');
+    document.documentElement.style.setProperty('--vw', vw + 'px');
   }
   addEventListener('resize', fit);
+  addEventListener('orientationchange', () => setTimeout(fit, 250));
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', () => setTimeout(fit, 100));
+  document.addEventListener('webkitfullscreenchange', () => setTimeout(fit, 100));
 
   // ------------------------------------------------------------------
   // Rete
@@ -148,6 +159,9 @@
         return;
       case 'lobby':
         if (lead && phase === 'over') backToHub();
+        return;
+      case 'exit':   // il capo interrompe la partita e torna al menu giochi
+        if (lead && phase === 'game') backToHub();
         return;
       case 'leave':
         if (phase !== 'game') { slots[s.slot] = null; evening[s.slot] = null; refreshHub(); broadcastYou(); }
@@ -511,9 +525,14 @@
   $('fsBtn').onclick = toggleFullscreen;
 
   function toggleFullscreen() {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(() => {});
-    else document.exitFullscreen && document.exitFullscreen();
+    if (!PGFullscreen.supported && PGFullscreen.needsInstall) {
+      flashHint('IPHONE: CONDIVIDI > AGGIUNGI A HOME, POI APRI DA LI');
+      return;
+    }
+    PGFullscreen.toggle();
   }
+  // al primo tocco / tasto lo schermo grande va a tutto schermo (senza barre del browser)
+  PGFullscreen.autoOnGesture(false);
 
   addEventListener('keydown', (e) => {
     const k = e.key;

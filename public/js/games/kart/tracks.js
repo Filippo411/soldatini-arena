@@ -18,7 +18,7 @@
     {
       id: 'monza', name: 'MONZA', laps: 3,
       sub: "Il tempio della velocità: Rettifilo, Curva Grande, Lesmo, Ascari e la Parabolica",
-      width: 64, walls: false, size: 4864,  // lunghezza reale 5766 m
+      width: 96, walls: false, size: 4864,  // lunghezza reale 5766 m
       ground: '#4ea52f', ground2: '#5fb83a', runoff: '#d9b56a', sky: ["#5fb8ff", "#a6e0ff"], scenery: 'alps', deco: 'monza',
       pts: [
         [254.6,3004.8], [258.2,2963.6], [261.7,2922.3], [265.2,2881.1], [268.8,2839.8], [272.3,2798.6],
@@ -76,7 +76,7 @@
     {
       id: 'spa', name: 'SPA', laps: 3,
       sub: "Le Ardenne: La Source, il sali-e-scendi di Eau Rouge e Raidillon, Pouhon e Blanchimont",
-      width: 60, walls: false, size: 3840,  // lunghezza reale 6954 m
+      width: 90, walls: false, size: 3840,  // lunghezza reale 6954 m
       ground: '#3f8a27', ground2: '#4ea52f', runoff: '#c9b89a', sky: ["#7a8fb8", "#b9c6dc"], scenery: 'forest', deco: 'spa',
       pts: [
         [822.2,538.0], [805.2,508.5], [788.3,479.0], [771.3,449.6], [754.3,420.1], [737.3,390.7],
@@ -158,7 +158,7 @@
     {
       id: 'monaco', name: 'MONACO', laps: 3,
       sub: "Muretti a un palmo, il tornante, il tunnel, la piscina e gli yacht nel porto",
-      width: 52, walls: true, size: 3520,  // lunghezza reale 3316 m
+      width: 72, walls: true, size: 3520,  // lunghezza reale 3316 m
       ground: '#9aa0ad', ground2: '#8a8f9c', runoff: '#6b6f7a', sky: ["#4fc3ff", "#b8ecff"], scenery: 'city', deco: 'monaco',
       pts: [
         [1727.0,778.5], [1730.0,715.2], [1760.2,658.0], [1799.7,606.7], [1839.2,555.3],

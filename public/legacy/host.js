@@ -100,6 +100,90 @@
     window.Net = Net;
 })();
 
+/* ---- js/common/fullscreen.js ---- */
+"use strict";
+(function () {
+    'use strict';
+    var de = document.documentElement;
+    var req = de.requestFullscreen || de.webkitRequestFullscreen || de.msRequestFullscreen;
+    function active() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+    function standalone() {
+        try {
+            if (window.navigator.standalone === true)
+                return true;
+            return !!(window.matchMedia && (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches));
+        }
+        catch (e) {
+            return false;
+        }
+    }
+    var ua = navigator.userAgent || '';
+    var isIPhone = /iPhone|iPod/.test(ua);
+    function lockLandscape() {
+        try {
+            if (screen.orientation && screen.orientation.lock)
+                screen.orientation.lock('landscape').catch(function () { });
+        }
+        catch (e) { }
+    }
+    function enter() {
+        if (active() || standalone() || !req)
+            return;
+        try {
+            var p = req.call(de, { navigationUI: 'hide' });
+            if (p && p.then)
+                p.then(lockLandscape, function () { });
+            else
+                lockLandscape();
+        }
+        catch (e) { }
+    }
+    function exit() {
+        var f = document.exitFullscreen || document.webkitExitFullscreen;
+        try {
+            if (f) {
+                var p = f.call(document);
+                if (p && p.catch)
+                    p.catch(function () { });
+            }
+        }
+        catch (e) { }
+    }
+    function toggle() { if (active())
+        exit();
+    else
+        enter(); }
+    function autoOnGesture(persistent) {
+        var stopped = false;
+        function onGesture(e) {
+            if (stopped || active() || standalone())
+                return;
+            if (e && e.type === 'keydown' && (e.key === 'Escape' || e.key === 'f' || e.key === 'F'))
+                return;
+            enter();
+        }
+        ['click', 'touchend', 'keydown'].forEach(function (name) { document.addEventListener(name, onGesture, true); });
+        if (!persistent) {
+            var seen = false;
+            var onChange = function () {
+                if (active())
+                    seen = true;
+                else if (seen)
+                    stopped = true;
+            };
+            document.addEventListener('fullscreenchange', onChange);
+            document.addEventListener('webkitfullscreenchange', onChange);
+        }
+    }
+    window.PGFullscreen = {
+        supported: !!req,
+        active: active,
+        standalone: standalone,
+        needsInstall: isIPhone && !standalone(),
+        enter: enter, exit: exit, toggle: toggle, autoOnGesture: autoOnGesture,
+    };
+})();
+
 /* ---- js/common/qr.js ---- */
 "use strict";
 var __values = (this && this.__values) || function(o) {
@@ -7292,7 +7376,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
         {
             id: 'monza', name: 'MONZA', laps: 3,
             sub: "Il tempio della velocità: Rettifilo, Curva Grande, Lesmo, Ascari e la Parabolica",
-            width: 64, walls: false, size: 4864,
+            width: 96, walls: false, size: 4864,
             ground: '#4ea52f', ground2: '#5fb83a', runoff: '#d9b56a', sky: ["#5fb8ff", "#a6e0ff"], scenery: 'alps', deco: 'monza',
             pts: [
                 [254.6, 3004.8], [258.2, 2963.6], [261.7, 2922.3], [265.2, 2881.1], [268.8, 2839.8], [272.3, 2798.6],
@@ -7350,7 +7434,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
         {
             id: 'spa', name: 'SPA', laps: 3,
             sub: "Le Ardenne: La Source, il sali-e-scendi di Eau Rouge e Raidillon, Pouhon e Blanchimont",
-            width: 60, walls: false, size: 3840,
+            width: 90, walls: false, size: 3840,
             ground: '#3f8a27', ground2: '#4ea52f', runoff: '#c9b89a', sky: ["#7a8fb8", "#b9c6dc"], scenery: 'forest', deco: 'spa',
             pts: [
                 [822.2, 538.0], [805.2, 508.5], [788.3, 479.0], [771.3, 449.6], [754.3, 420.1], [737.3, 390.7],
@@ -7432,7 +7516,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
         {
             id: 'monaco', name: 'MONACO', laps: 3,
             sub: "Muretti a un palmo, il tornante, il tunnel, la piscina e gli yacht nel porto",
-            width: 52, walls: true, size: 3520,
+            width: 72, walls: true, size: 3520,
             ground: '#9aa0ad', ground2: '#8a8f9c', runoff: '#6b6f7a', sky: ["#4fc3ff", "#b8ecff"], scenery: 'city', deco: 'monaco',
             pts: [
                 [1727.0, 778.5], [1730.0, 715.2], [1760.2, 658.0], [1799.7, 606.7], [1839.2, 555.3],
@@ -7582,7 +7666,7 @@ var __values = (this && this.__values) || function(o) {
             g.restore();
         }
         if (!tr.walls)
-            strokePath(g, S, W + 44, tr.runoff);
+            strokePath(g, S, W + 60, tr.runoff);
         else
             strokePath(g, S, W + 14, '#c9ccd4');
         if (tr.walls)
@@ -7642,7 +7726,7 @@ var __values = (this && this.__values) || function(o) {
         h.fillStyle = col(tr.walls ? SURF.WALL : SURF.GRASS);
         h.fillRect(0, 0, WS, WS);
         if (!tr.walls)
-            strokePath(h, S, W + 44, col(SURF.SAND));
+            strokePath(h, S, W + 60, col(SURF.SAND));
         strokePath(h, S, W + 8, col(SURF.KERB));
         strokePath(h, S, W, col(SURF.ROAD));
         var raw = h.getImageData(0, 0, TS, TS).data;
@@ -8044,11 +8128,15 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
         MAX_SPEED: 135,
         ACCEL: 70,
         BRAKE: 160,
-        TURN: 2.3,
+        TURN: 2.0,
+        TURN_HIGH: 0.62,
+        STEER_SMOOTH: 9,
+        GRIP_ROAD: 15,
+        GRIP_OFF: 9,
         TURBO_TIME: 1.3,
         TURBO_MULT: 1.45,
         TURBOS: 3,
-        SURF_SPEED: [0.5, 1, 0.92, 0.42, 1],
+        SURF_SPEED: [0.64, 1, 0.96, 0.56, 1],
         LIGHTS: 5,
         LIGHT_STEP: 0.7,
         FINISH_WAIT: 20,
@@ -8074,7 +8162,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
                     slot: r.slot, name: r.name, isBot: !!r.isBot, char: r.char, connected: true,
                     x: s.x + nx * side * world.track.width * 0.22, y: s.y + ny * side * world.track.width * 0.22,
                     heading: s.dir, speed: 0, vdir: s.dir,
-                    input: { steer: 0, brake: false, turbo: false },
+                    input: { steer: 0, brake: false, turbo: false }, steerS: 0,
                     idx: (_this.N - 8 - 9 * i) % _this.N, lap: 0, passedHalf: true, finished: false, finishTime: 0, place: 0,
                     turbos: KC.TURBOS, turboT: 0, surf: 1, bumpT: 0, wrongT: 0, offT: 0, z: 0,
                     sprites: KartArt.buildKart(pc.color, pc.dark, r.char),
@@ -8158,7 +8246,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
             k.surf = this.world.surfAt(k.x, k.y);
             var surfMul = KC.SURF_SPEED[k.surf] != null ? KC.SURF_SPEED[k.surf] : 1;
             var max = KC.MAX_SPEED * surfMul * (k.turboT > 0 ? KC.TURBO_MULT : 1) * (k.isBot ? k.bot.skill * this.rubber(k) : 1);
-            var steer = Math.max(-1, Math.min(1, k.connected || k.isBot ? inp.steer : 0));
+            var rawSteer = Math.max(-1, Math.min(1, k.connected || k.isBot ? inp.steer : 0));
+            k.steerS += (rawSteer - k.steerS) * Math.min(1, KC.STEER_SMOOTH * dt);
+            var steer = k.steerS;
             if (inp.brake && (k.connected || k.isBot))
                 k.speed -= KC.BRAKE * dt;
             else
@@ -8168,16 +8258,18 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
             if (k.speed < 0)
                 k.speed = Math.max(k.speed, -30);
             var grip = Math.min(1, Math.abs(k.speed) / 50);
-            k.heading = wrapA(k.heading + steer * KC.TURN * grip * dt * (inp.brake ? 1.25 : 1) * Math.sign(k.speed || 1));
-            k.vdir = wrapA(k.vdir + wrapA(k.heading - k.vdir) * Math.min(1, dt * (k.surf === 1 ? 9 : 5)));
+            var fast = Math.min(1, Math.abs(k.speed) / KC.MAX_SPEED);
+            var turnMul = 1 - (1 - KC.TURN_HIGH) * fast;
+            k.heading = wrapA(k.heading + steer * KC.TURN * turnMul * grip * dt * (inp.brake ? 1.25 : 1) * Math.sign(k.speed || 1));
+            k.vdir = wrapA(k.vdir + wrapA(k.heading - k.vdir) * Math.min(1, dt * (k.surf === 1 || k.surf === 2 ? KC.GRIP_ROAD : KC.GRIP_OFF)));
             var nx = k.x + Math.cos(k.vdir) * k.speed * dt, ny = k.y + Math.sin(k.vdir) * k.speed * dt;
             if (this.world.surfAt(nx, ny) === KartWorld.SURF.WALL) {
                 var s = this.world.samples[k.idx];
                 var dx = s.x - k.x, dy = s.y - k.y, d = Math.hypot(dx, dy) || 1;
                 k.x += dx / d * 2;
                 k.y += dy / d * 2;
-                k.speed *= 0.45;
-                k.vdir = k.heading = wrapA(k.heading + wrapA(s.dir - k.heading) * 0.5);
+                k.speed *= 0.7;
+                k.vdir = k.heading = wrapA(k.heading + wrapA(s.dir - k.heading) * 0.6);
                 if (k.bumpT <= 0) {
                     k.bumpT = 0.4;
                     this.emit('sfx', 'crash');
@@ -10851,13 +10943,23 @@ var __read = (this && this.__read) || function (o, n) {
     var canvas = $('game');
     function fit() {
         var w = canvas.width || 384, h = canvas.height || 216;
-        var s = Math.min(innerWidth / w, innerHeight / h);
+        var vv = window.visualViewport;
+        var vw = Math.min(innerWidth, vv ? vv.width : innerWidth), vh = Math.min(innerHeight, vv ? vv.height : innerHeight);
+        var s = Math.min(vw / w, vh / h);
         var si = Math.floor(s);
         var scale = si >= 2 && si / s > 0.9 ? si : s;
-        canvas.style.width = Math.floor(w * scale) + 'px';
-        canvas.style.height = Math.floor(h * scale) + 'px';
+        canvas.style.width = Math.max(1, Math.floor(w * scale)) + 'px';
+        canvas.style.height = Math.max(1, Math.floor(h * scale)) + 'px';
+        document.documentElement.classList.add('has-vh');
+        document.documentElement.style.setProperty('--vh', vh + 'px');
+        document.documentElement.style.setProperty('--vw', vw + 'px');
     }
     addEventListener('resize', fit);
+    addEventListener('orientationchange', function () { return setTimeout(fit, 250); });
+    if (window.visualViewport)
+        window.visualViewport.addEventListener('resize', fit);
+    document.addEventListener('fullscreenchange', function () { return setTimeout(fit, 100); });
+    document.addEventListener('webkitfullscreenchange', function () { return setTimeout(fit, 100); });
     function connect() {
         try {
             var saved = JSON.parse(sessionStorage.getItem('pgr-room') || 'null');
@@ -10968,6 +11070,10 @@ var __read = (this && this.__read) || function (o, n) {
                 return;
             case 'lobby':
                 if (lead && phase === 'over')
+                    backToHub();
+                return;
+            case 'exit':
+                if (lead && phase === 'game')
                     backToHub();
                 return;
             case 'leave':
@@ -11441,11 +11547,13 @@ var __read = (this && this.__read) || function (o, n) {
     $('muteBtn').onclick = function () { $('muteBtn').textContent = Sfx.toggleMute() ? 'AUDIO OFF' : 'AUDIO ON'; };
     $('fsBtn').onclick = toggleFullscreen;
     function toggleFullscreen() {
-        if (!document.fullscreenElement)
-            document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(function () { });
-        else
-            document.exitFullscreen && document.exitFullscreen();
+        if (!PGFullscreen.supported && PGFullscreen.needsInstall) {
+            flashHint('IPHONE: CONDIVIDI > AGGIUNGI A HOME, POI APRI DA LI');
+            return;
+        }
+        PGFullscreen.toggle();
     }
+    PGFullscreen.autoOnGesture(false);
     addEventListener('keydown', function (e) {
         var k = e.key;
         if (phase === 'hub') {

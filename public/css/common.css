@@ -17,6 +17,9 @@
 html, body {
   margin: 0;
   height: 100%;
+  overscroll-behavior: none;          /* niente "tira per aggiornare": farebbe ricomparire la barra del browser */
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
   background: #20152a;
   color: var(--white);
   font-family: 'Press Start 2P', 'Courier New', monospace;
@@ -25,6 +28,9 @@ html, body {
 }
 
 .hidden { display: none !important; }
+
+/* altezza vera dello schermo, senza le barre del browser che compaiono e spariscono */
+@supports (height: 100dvh) { html, body { height: 100dvh; } }
 
 /* Pulsante pixel: bordo a gradini ottenuto con box-shadow */
 .btn {

@@ -2,7 +2,15 @@
 <html lang="it">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- niente zoom e barre: lo schermo grande si adatta a TV, iPad e telefono -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pippo">
+  <meta name="theme-color" content="#1b1b26">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
   <title>Pippo Game Room</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
@@ -83,6 +91,7 @@
   <script>
     var HOST_SCRIPTS = [
       'js/common/net.js',
+      'js/common/fullscreen.js',
       'js/common/qr.js',
       'js/common/icons.js',
       'js/core/registry.js',

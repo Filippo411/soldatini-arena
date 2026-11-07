@@ -12,11 +12,15 @@
     MAX_SPEED: 135,
     ACCEL: 70,
     BRAKE: 160,
-    TURN: 2.3,            // radianti al secondo a piena sterzata
+    TURN: 2.0,            // radianti al secondo a piena sterzata (a bassa velocità)
+    TURN_HIGH: 0.62,      // a velocità massima la sterzata si riduce a questa frazione: meno testacoda
+    STEER_SMOOTH: 9,      // più alto = il volante risponde più in fretta (ammorbidisce i tocchi bruschi)
+    GRIP_ROAD: 15,        // quanto in fretta il kart "segue" il muso su asfalto (alto = meno scivolamento)
+    GRIP_OFF: 9,          // idem fuori pista
     TURBO_TIME: 1.3,
     TURBO_MULT: 1.45,
     TURBOS: 3,
-    SURF_SPEED: [0.5, 1, 0.92, 0.42, 1],   // erba, asfalto, cordolo, sabbia, (muro)
+    SURF_SPEED: [0.64, 1, 0.96, 0.56, 1],   // erba, asfalto, cordolo, sabbia, (muro)
     LIGHTS: 5,
     LIGHT_STEP: 0.7,
     FINISH_WAIT: 20,      // dopo il primo arrivato, quanti secondi aspettare gli altri
@@ -44,7 +48,7 @@
           slot: r.slot, name: r.name, isBot: !!r.isBot, char: r.char, connected: true,
           x: s.x + nx * side * world.track.width * 0.22, y: s.y + ny * side * world.track.width * 0.22,
           heading: s.dir, speed: 0, vdir: s.dir,
-          input: { steer: 0, brake: false, turbo: false },
+          input: { steer: 0, brake: false, turbo: false }, steerS: 0,
           idx: (this.N - 8 - 9 * i) % this.N, lap: 0, passedHalf: true, finished: false, finishTime: 0, place: 0,
           turbos: KC.TURBOS, turboT: 0, surf: 1, bumpT: 0, wrongT: 0, offT: 0, z: 0,
           sprites: KartArt.buildKart(pc.color, pc.dark, r.char),
@@ -105,24 +109,30 @@
       k.surf = this.world.surfAt(k.x, k.y);
       const surfMul = KC.SURF_SPEED[k.surf] != null ? KC.SURF_SPEED[k.surf] : 1;
       const max = KC.MAX_SPEED * surfMul * (k.turboT > 0 ? KC.TURBO_MULT : 1) * (k.isBot ? k.bot.skill * this.rubber(k) : 1);
-      const steer = Math.max(-1, Math.min(1, k.connected || k.isBot ? inp.steer : 0));
+      const rawSteer = Math.max(-1, Math.min(1, k.connected || k.isBot ? inp.steer : 0));
+      // il volante si muove con un leggero "ritardo": niente scatti quando il telefono trema
+      k.steerS += (rawSteer - k.steerS) * Math.min(1, KC.STEER_SMOOTH * dt);
+      const steer = k.steerS;
       if (inp.brake && (k.connected || k.isBot)) k.speed -= KC.BRAKE * dt;
       else k.speed += KC.ACCEL * (k.turboT > 0 ? 2 : 1) * dt;
       if (k.speed > max) k.speed -= (k.speed - max) * Math.min(1, 2.5 * dt);
       if (k.speed < 0) k.speed = Math.max(k.speed, -30);
       // sterzata: più efficace in velocità (ma non da fermi)
       const grip = Math.min(1, Math.abs(k.speed) / 50);
-      k.heading = wrapA(k.heading + steer * KC.TURN * grip * dt * (inp.brake ? 1.25 : 1) * Math.sign(k.speed || 1));
-      // la direzione del moto segue il muso con un po' di scivolamento
-      k.vdir = wrapA(k.vdir + wrapA(k.heading - k.vdir) * Math.min(1, dt * (k.surf === 1 ? 9 : 5)));
+      // più si va forte, meno si gira: la curva resta controllabile anche a 135 km/h
+      const fast = Math.min(1, Math.abs(k.speed) / KC.MAX_SPEED);
+      const turnMul = 1 - (1 - KC.TURN_HIGH) * fast;
+      k.heading = wrapA(k.heading + steer * KC.TURN * turnMul * grip * dt * (inp.brake ? 1.25 : 1) * Math.sign(k.speed || 1));
+      // la direzione del moto segue il muso con pochissimo scivolamento
+      k.vdir = wrapA(k.vdir + wrapA(k.heading - k.vdir) * Math.min(1, dt * (k.surf === 1 || k.surf === 2 ? KC.GRIP_ROAD : KC.GRIP_OFF)));
       const nx = k.x + Math.cos(k.vdir) * k.speed * dt, ny = k.y + Math.sin(k.vdir) * k.speed * dt;
       if (this.world.surfAt(nx, ny) === KartWorld.SURF.WALL) {
         // muretto: rimbalzo verso la pista
         const s = this.world.samples[k.idx];
         const dx = s.x - k.x, dy = s.y - k.y, d = Math.hypot(dx, dy) || 1;
         k.x += dx / d * 2; k.y += dy / d * 2;
-        k.speed *= 0.45;
-        k.vdir = k.heading = wrapA(k.heading + wrapA(s.dir - k.heading) * 0.5);
+        k.speed *= 0.7;     // il muretto frena meno: si riparte subito
+        k.vdir = k.heading = wrapA(k.heading + wrapA(s.dir - k.heading) * 0.6);
         if (k.bumpT <= 0) { k.bumpT = 0.4; this.emit('sfx', 'crash'); this.emit('buzz', { k, pattern: [90] }); }
       } else { k.x = nx; k.y = ny; }
       // fuori pista: vibrazione

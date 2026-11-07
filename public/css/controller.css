@@ -360,3 +360,16 @@ body.ctrl {
   #joinForm input { padding: 8px; font-size: 16px; }
   .btn.big { font-size: 16px; padding: 12px 18px; }
 }
+
+/* Pulsante ESCI (solo il capo, in partita): piccolo, in basso al centro, sopra a tutto */
+.exit-btn {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: max(4px, env(safe-area-inset-bottom));
+  z-index: 25; margin: 0; padding: 6px 10px; font-size: 9px;
+  background: #7a3b3b; color: #fff; opacity: 0.8;
+}
+.exit-btn:active { transform: translateX(-50%) translateY(2px); }
+.exit-btn.confirm { background: var(--red); opacity: 1; animation: blink 0.5s steps(1) infinite; }
+
+/* Joystick sempre a tutto schermo: la pagina non scorre e non si "tira" (niente barra del browser) */
+body.ctrl { position: fixed; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
